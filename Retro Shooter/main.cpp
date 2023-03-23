@@ -1,6 +1,8 @@
 #include <iostream>
 #include <utility>
 
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "Player.h"
 #include "map.h"
 
@@ -11,12 +13,12 @@
 #define DEG 0.0174533
 
 int level[100] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
 	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -35,11 +37,11 @@ public:
 		sAppName = "Example";
 	}
 
-	std::pair <float, std::pair<olc::vd2d, float>> getRayDistance(Room& curRoom, float rot) {
+	std::pair <float, std::pair<olc::vd2d, bool>> getRayDistance(Room& curRoom, float rot) {
 
 		olc::vd2d rayPos = olc::vd2d(player.position);
 		
-		float lightMultiplier;
+		bool side;
 
 		float shortestLength = 10000000000;
 
@@ -81,7 +83,7 @@ public:
 			if (!curRoom.pointInRoom(pointx, pointy))
 				break;
 
-			if (curRoom.getBlock(pointx, pointy) != blockTypes::NONE) {
+			if (curRoom.getBlock(pointx, pointy).type != blockTypes::NONE) {
 
 				float delX2 = (interx - rayPos.x) * (interx - rayPos.x);
 				float delY2 = (intery - rayPos.y) * (intery - rayPos.y);
@@ -92,7 +94,7 @@ public:
 					
 					shortestLength = newLenght;
 					retVal = olc::vd2d(interx, intery);
-					lightMultiplier = 1;
+					side = 0;
 
 				}
 
@@ -140,7 +142,7 @@ public:
 			if (!curRoom.pointInRoom(pointx, pointy))
 				break;
 
-			if (curRoom.getBlock(pointx, pointy) != blockTypes::NONE) {
+			if (curRoom.getBlock(pointx, pointy).type != blockTypes::NONE) {
 
 				float delX2 = (interx - rayPos.x) * (interx - rayPos.x);
 				float delY2 = (intery - rayPos.y) * (intery - rayPos.y);
@@ -151,7 +153,7 @@ public:
 
 					shortestLength = newLenght;
 					retVal = olc::vd2d(interx, intery);
-					lightMultiplier = 0.7f;
+					side = 1;
 
 				}
 
@@ -164,7 +166,7 @@ public:
 
 		}
 
-		return { shortestLength, {retVal,  lightMultiplier} };
+		return { shortestLength, {retVal,  side} };
 
 	}
 
@@ -189,13 +191,50 @@ public:
 		}
 
 		if (GetKey(olc::W).bHeld) {
-			player.position.x += player.speed * cosf(player.roation) * fElapsedTime;
-			player.position.y += player.speed * sinf(player.roation) * fElapsedTime;
+
+			float moveX = player.speed * cosf(player.roation) * fElapsedTime;
+			float moveY = player.speed * sinf(player.roation) * fElapsedTime;
+
+			player.position.x += moveX;
+			player.position.y += moveY;
+
+			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+				player.position.x -= moveX;
+			}
+
+			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+				player.position.x += moveX;
+				player.position.y -= moveY;
+			}
+
+			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+				player.position.x -= moveX;
+			}
+
+
 		}
 
 		if (GetKey(olc::S).bHeld) {
-			player.position.x -= player.speed * cosf(player.roation) * fElapsedTime;
-			player.position.y -= player.speed * sinf(player.roation) * fElapsedTime;
+			
+			float moveX = -player.speed * cosf(player.roation) * fElapsedTime;
+			float moveY = -player.speed * sinf(player.roation) * fElapsedTime;
+
+			player.position.x += moveX;
+			player.position.y += moveY;
+
+			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+				player.position.x -= moveX;
+			}
+
+			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+				player.position.x += moveX;
+				player.position.y -= moveY;
+			}
+
+			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+				player.position.x -= moveX;
+			}
+
 		}
 
 	}
@@ -207,13 +246,18 @@ public:
 		player.position = olc::vd2d(256, 256);
 		
 		room = Room(10, 10);
+		room.addWallTexture("Resourses/wall.jpg");
 
 		for (int k = 0; k < 100; k++) {
 		
-			if(level[k] != 0)
-				room.changeBlock(k % 10, k / 10, blockTypes::BLANK);
-			
+			if (level[k] != 0) {
+				room.changeBlock(k % 10, k / 10, blockTypes::WALL);
+				room.changeWallTexture(k % 10, k / 10, 0);
+			}
+
 		}
+
+		
 
 		return true;
 	}
@@ -223,12 +267,14 @@ public:
 		getInputs(fElapsedTime);
 		Clear(olc::Pixel(135, 206, 235));
 
-		int fov = 90;
+		room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize);
+
+		int fov = 60;
 		int numberOfRays = ScreenWidth();
 
 		float curDeg = DEG * -(fov / 2) + player.roation;
 
-		for (int k = 0; k < numberOfRays; k++) {
+		for (int x = 0; x < numberOfRays; x++) {
 
 			float useDeg = curDeg;
 
@@ -246,21 +292,62 @@ public:
 			if (degBet > 2 * PI)
 				degBet -= 2 * PI;
 
-			float curDist, curLightMultiplier;
+			float curDist; bool side;
 			olc::vd2d curInter;
 
-			std::pair <float, std::pair<olc::vd2d, float>> retVal = getRayDistance(room, useDeg);
-			curDist = retVal.first, curInter = retVal.second.first, curLightMultiplier = retVal.second.second;
+			std::pair <float, std::pair<olc::vd2d, bool>> retVal = getRayDistance(room, useDeg);
+			curDist = retVal.first, curInter = retVal.second.first, side = retVal.second.second;
 
-			curDist *= cos(degBet);
+			float curLightMultiplier = (!side ? 1.0f : 0.7f);
+
+			curDist *= cosf(degBet);
 
 			float lineHeight = (cubeSize * ScreenHeight()) / curDist;
+			float unclippedLineHeight = lineHeight;
 			lineHeight = std::min(lineHeight, (float)ScreenHeight());
 
 			olc::Pixel curColor((float)255 * curLightMultiplier, (float)255 * curLightMultiplier, (float)255 * curLightMultiplier);
 
-			DrawLine(olc::vd2d(k, (ScreenHeight() - lineHeight) / 2), olc::vd2d(k, (ScreenHeight() + lineHeight) / 2), curColor);
+			Block& curWall = room.getBlockSizeAdjusted(curInter.x, curInter.y, cubeSize);
+			int wallTextureId = curWall.wallTextureID;
 
+			if (wallTextureId != -1) {
+				
+				float texSizeDiffX = (float)cubeSize / (float)room.getWallTexture(wallTextureId).imageWidth;
+				float texSizeDiffY = (float)cubeSize / (float)room.getWallTexture(wallTextureId).imageHeight;
+
+				float ty_step = ((float)cubeSize / unclippedLineHeight) / texSizeDiffX;
+				float ty_offset = (unclippedLineHeight > ScreenHeight() ? (unclippedLineHeight - ScreenHeight()) / 2.0 : 0);
+
+				float ty = ty_step * ty_offset;
+				float tx;
+
+				if (!side) {
+					tx = ((int)(curInter.x / 2.0f) % cubeSize) / texSizeDiffY;
+					if (useDeg > PI) tx = (float)room.getWallTexture(wallTextureId).imageWidth - tx - 1;
+				}
+				else {
+					tx = ((int)(curInter.y / 2.0f) % cubeSize) / texSizeDiffY;
+					if (useDeg > PI / 2 && useDeg < 3 * PI / 2) tx = (float)room.getWallTexture(wallTextureId).imageWidth - tx - 1;
+				}
+
+				for (int y = (ScreenHeight() - lineHeight) / 2; y <= (ScreenHeight() + lineHeight) / 2; y++) {
+
+					olc::Pixel color = room.getWallTexture(wallTextureId).getPixel((int)tx, (int)ty);
+					
+					color.r *= curLightMultiplier;
+					color.g *= curLightMultiplier;
+					color.b *= curLightMultiplier;
+
+					Draw(x, y, color);
+
+					ty += ty_step;
+
+				}
+
+			}
+			else DrawLine(olc::vd2d(x, (ScreenHeight() - lineHeight) / 2), olc::vd2d(x, (ScreenHeight() + lineHeight) / 2), curColor);
+			
 			curDeg += DEG * ((float)fov / (float)numberOfRays);
 
 		}
