@@ -46,6 +46,9 @@ public:
 	int fov;
 	int numberOfRays;
 
+	float ceilShade = 0.7f;
+	float floorShade = 0.7f;
+
 	Example() {
 		sAppName = "Example";
 	}
@@ -353,6 +356,11 @@ public:
 
 					olc::Pixel curColor = room.getFloorTexture(curWall.floorTextureID).getPixel((int)tx, (int)ty);
 
+					curColor.r *= floorShade;
+					curColor.g *= floorShade;
+					curColor.b *= floorShade;
+
+
 					Draw(x, y, curColor);
 				}
 			}
@@ -382,6 +390,11 @@ public:
 						ty = ((int)ty & (curImgHeight - 1));
 
 						olc::Pixel curColor = room.getCeilTexture(curWall.ceilTextureID).getPixel((int)tx, (int)ty);
+
+						curColor.r *= ceilShade;
+						curColor.g *= ceilShade;
+						curColor.b *= ceilShade;
+
 
 						Draw(x, ScreenHeight() - y, curColor);
 					}
