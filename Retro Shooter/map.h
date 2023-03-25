@@ -14,6 +14,8 @@ struct Block {
 	int ceilTextureID = -1;
 	int floorTextureID = -1;
 
+	bool hasCeil = true;
+
 };
 
 class Room {

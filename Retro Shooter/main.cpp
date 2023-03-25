@@ -12,17 +12,27 @@
 #define PI 3.14159265359
 #define DEG 0.0174533
 
-int level[100] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+int level[400] = {
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
 class Example : public olc::PixelGameEngine {
@@ -31,11 +41,16 @@ public:
 	Player player;
 	Room room;
 
-	int cubeSize = 64;
+	const int cubeSize = 64;
+
+	int fov;
+	int numberOfRays;
 
 	Example() {
 		sAppName = "Example";
 	}
+
+	/*************************************** MATH FUNCTIONS ***************************************/
 
 	std::pair <float, std::pair<olc::vd2d, bool>> getRayDistance(Room& curRoom, float rot) {
 
@@ -170,6 +185,39 @@ public:
 
 	}
 
+	/*************************************** HELPER FUNCTIONS ***************************************/
+
+	void fixPlayerToWallCollision(float moveX, float moveY) {
+
+		if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+			player.position.x -= moveX;
+		}
+
+		if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+			player.position.x += moveX;
+			player.position.y -= moveY;
+		}
+
+		if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+			player.position.x -= moveX;
+		}
+
+	}
+
+	float fixAngle(float Angle) {
+
+		if (Angle < 0)
+			Angle += 2 * PI;
+
+		if (Angle > 2 * PI)
+			Angle -= 2 * PI;
+
+		return Angle;
+
+	}
+
+	/*************************************** IMPORTANT FUNCTIONS ***************************************/
+
 	void getInputs(float fElapsedTime) {
 
 		if (GetKey(olc::A).bHeld) {
@@ -198,20 +246,7 @@ public:
 			player.position.x += moveX;
 			player.position.y += moveY;
 
-			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
-				player.position.x -= moveX;
-			}
-
-			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
-				player.position.x += moveX;
-				player.position.y -= moveY;
-			}
-
-			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
-				player.position.x -= moveX;
-			}
-
-
+			fixPlayerToWallCollision(moveX, moveY);
 		}
 
 		if (GetKey(olc::S).bHeld) {
@@ -222,75 +257,20 @@ public:
 			player.position.x += moveX;
 			player.position.y += moveY;
 
-			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
-				player.position.x -= moveX;
-			}
-
-			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
-				player.position.x += moveX;
-				player.position.y -= moveY;
-			}
-
-			if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
-				player.position.x -= moveX;
-			}
+			fixPlayerToWallCollision(moveX, moveY);
 
 		}
 
 	}
 
-public:
-
-	bool OnUserCreate() override {
-
-		player.position = olc::vd2d(256, 256);
-		
-		room = Room(10, 10);
-		room.addWallTexture("Resourses/wall.jpg");
-
-		for (int k = 0; k < 100; k++) {
-		
-			if (level[k] != 0) {
-				room.changeBlock(k % 10, k / 10, blockTypes::WALL);
-				room.changeWallTexture(k % 10, k / 10, 0);
-			}
-
-		}
-
-		
-
-		return true;
-	}
-
-	bool OnUserUpdate(float fElapsedTime) override {
-
-		getInputs(fElapsedTime);
-		Clear(olc::Pixel(135, 206, 235));
-
-		room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize);
-
-		int fov = 60;
-		int numberOfRays = ScreenWidth();
+	void renderScene(int fov, int numberOfRays) {
 
 		float curDeg = DEG * -(fov / 2) + player.roation;
 
 		for (int x = 0; x < numberOfRays; x++) {
 
-			float useDeg = curDeg;
-
-			if (useDeg < 0)
-				useDeg += 2 * PI;
-
-			if (useDeg > 2 * PI)
-				useDeg -= 2 * PI;
-
-			float degBet = player.roation - useDeg;
-
-			if (degBet < 0)
-				degBet += 2 * PI;
-
-			if (degBet > 2 * PI)
-				degBet -= 2 * PI;
+			float useDeg = fixAngle(curDeg);
+			float degBet = fixAngle(player.roation - useDeg);
 
 			float curDist; bool side;
 			olc::vd2d curInter;
@@ -303,18 +283,18 @@ public:
 			curDist *= cosf(degBet);
 
 			float lineHeight = (cubeSize * ScreenHeight()) / curDist;
+
 			float unclippedLineHeight = lineHeight;
 			lineHeight = std::min(lineHeight, (float)ScreenHeight());
 
 			olc::Pixel curColor((float)255 * curLightMultiplier, (float)255 * curLightMultiplier, (float)255 * curLightMultiplier);
 
 			Block& curWall = room.getBlockSizeAdjusted(curInter.x, curInter.y, cubeSize);
-			int wallTextureId = curWall.wallTextureID;
 
-			if (wallTextureId != -1) {
-				
-				float texSizeDiffX = (float)cubeSize / (float)room.getWallTexture(wallTextureId).imageWidth;
-				float texSizeDiffY = (float)cubeSize / (float)room.getWallTexture(wallTextureId).imageHeight;
+			if (curWall.wallTextureID != -1) {
+
+				float texSizeDiffX = (float)cubeSize / (float)room.getWallTexture(curWall.wallTextureID).imageWidth;
+				float texSizeDiffY = (float)cubeSize / (float)room.getWallTexture(curWall.wallTextureID).imageHeight;
 
 				float ty_step = ((float)cubeSize / unclippedLineHeight) / texSizeDiffX;
 				float ty_offset = (unclippedLineHeight > ScreenHeight() ? (unclippedLineHeight - ScreenHeight()) / 2.0 : 0);
@@ -324,22 +304,22 @@ public:
 
 				if (!side) {
 					tx = ((int)(curInter.x / 2.0f) % cubeSize) / texSizeDiffY;
-					if (useDeg > PI) tx = (float)room.getWallTexture(wallTextureId).imageWidth - tx - 1;
+					if (useDeg > PI) tx = (float)room.getWallTexture(curWall.wallTextureID).imageWidth - tx - 1;
 				}
 				else {
 					tx = ((int)(curInter.y / 2.0f) % cubeSize) / texSizeDiffY;
-					if (useDeg > PI / 2 && useDeg < 3 * PI / 2) tx = (float)room.getWallTexture(wallTextureId).imageWidth - tx - 1;
+					if (useDeg > PI / 2 && useDeg < 3 * PI / 2) tx = (float)room.getWallTexture(curWall.wallTextureID).imageWidth - tx - 1;
 				}
 
 				for (int y = (ScreenHeight() - lineHeight) / 2; y <= (ScreenHeight() + lineHeight) / 2; y++) {
 
-					olc::Pixel color = room.getWallTexture(wallTextureId).getPixel((int)tx, (int)ty);
-					
-					color.r *= curLightMultiplier;
-					color.g *= curLightMultiplier;
-					color.b *= curLightMultiplier;
+					olc::Pixel curColor = room.getWallTexture(curWall.wallTextureID).getPixel((int)(tx), (int)(ty));
 
-					Draw(x, y, color);
+					curColor.r *= curLightMultiplier;
+					curColor.g *= curLightMultiplier;
+					curColor.b *= curLightMultiplier;
+
+					Draw(x, y, curColor);
 
 					ty += ty_step;
 
@@ -347,10 +327,110 @@ public:
 
 			}
 			else DrawLine(olc::vd2d(x, (ScreenHeight() - lineHeight) / 2), olc::vd2d(x, (ScreenHeight() + lineHeight) / 2), curColor);
-			
+
+			if (curWall.floorTextureID != -1) {
+
+				for (int y = (ScreenHeight() + lineHeight) / 2 + 1; y < ScreenHeight(); y++) {
+
+					float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
+
+					float px = player.position.x;
+					float py = player.position.y;
+
+					float magicNum = 158.0f * ((float)ScreenHeight() / 320.0f);
+
+					float tx = px / 2 + cos(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+					float ty = py / 2 + sin(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+
+					int curImgWidth = room.getFloorTexture(curWall.floorTextureID).imageWidth;
+					int curImgHeight = room.getFloorTexture(curWall.floorTextureID).imageHeight;
+
+					tx /= (float)cubeSize / (float)curImgWidth;
+					ty /= (float)cubeSize / (float)curImgHeight;
+
+					tx = ((int)tx & (curImgWidth - 1));
+					ty = ((int)ty & (curImgHeight - 1));
+
+					olc::Pixel curColor = room.getFloorTexture(curWall.floorTextureID).getPixel((int)tx, (int)ty);
+
+					Draw(x, y, curColor);
+				}
+			}
+
+			if (curWall.hasCeil) {
+				if (curWall.ceilTextureID != -1) {
+
+					for (int y = (ScreenHeight() + lineHeight) / 2 + 1; y < ScreenHeight(); y++) {
+
+						float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
+
+						float px = player.position.x;
+						float py = player.position.y;
+
+						float magicNum = 158.0f * ((float)ScreenHeight() / 320.0f);
+
+						float tx = px / 2 + cos(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+						float ty = py / 2 + sin(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+
+						int curImgWidth = room.getCeilTexture(curWall.ceilTextureID).imageWidth;
+						int curImgHeight = room.getCeilTexture(curWall.ceilTextureID).imageHeight;
+
+						tx /= (float)cubeSize / (float)curImgWidth;
+						ty /= (float)cubeSize / (float)curImgHeight;
+
+						tx = ((int)tx & (curImgWidth - 1));
+						ty = ((int)ty & (curImgHeight - 1));
+
+						olc::Pixel curColor = room.getCeilTexture(curWall.ceilTextureID).getPixel((int)tx, (int)ty);
+
+						Draw(x, ScreenHeight() - y, curColor);
+					}
+				}
+			}
+
 			curDeg += DEG * ((float)fov / (float)numberOfRays);
 
 		}
+
+	}
+
+public:
+
+	bool OnUserCreate() override {
+
+		player.position = olc::vd2d(256, 256);
+		
+		room = Room(20, 20);
+
+		room.addWallTexture("Resourses/wall.jpg");
+		room.addFloorTexture("Resourses/floor.png");
+		room.addCeilTexture("Resourses/ceiling.jpg");
+
+		for (int k = 0; k < 400; k++) {
+		
+			if (level[k] != 0) {
+				room.changeBlock(k % 20, k / 20, blockTypes::WALL);
+				room.changeWallTexture(k % 20, k / 20, 0);
+				room.changeFloorTexture(k % 20, k / 20, 0);
+				room.changeCeilTexture(k % 20, k / 20, 0);
+			}
+
+		}
+
+		fov = 60;
+		numberOfRays = ScreenWidth();
+
+		return true;
+	}
+
+	bool OnUserUpdate(float fElapsedTime) override {
+
+		getInputs(fElapsedTime);
+		Clear(olc::Pixel(135, 206, 235));
+
+		
+
+		renderScene(fov, numberOfRays);
 		
 		return true;
 	}
@@ -362,6 +442,6 @@ int main() {
 	
 	if (demo.Construct(256, 240, 4, 4))
 		demo.Start();
-	
+
 	return 0;
 }
