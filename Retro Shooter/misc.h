@@ -12,6 +12,7 @@ public:
 
 	int imageWidth, imageHeight, channels;
 
+	Texture();
 	Texture(const char* filePath);
 
 	olc::Pixel getPixel(int x, int y);

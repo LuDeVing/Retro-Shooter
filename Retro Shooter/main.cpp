@@ -13,25 +13,25 @@
 #define DEG 0.0174533
 
 int level[400] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,	
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,	
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
@@ -40,6 +40,8 @@ public:
 
 	Player player;
 	Room room;
+
+	Texture skyTexture;
 
 	const int cubeSize = 64;
 
@@ -407,25 +409,55 @@ public:
 
 	}
 
+	void drawSky() {
+
+		float playerRotInDegs = float(player.roation / (2 * PI) * 360.0f);
+
+		std::cout << playerRotInDegs << '\n';
+
+		for (int y = ScreenHeight() / 2; y >= 0; y--) {
+			for (int x = 0; x < ScreenWidth(); x++) {
+
+				float xRotated = (playerRotInDegs + x);
+
+				
+				//std::cout << xRotated <<' ';
+
+				float tx = xRotated * skyTexture.imageWidth / ((float)fov / (float)ScreenWidth());
+				float ty = y * skyTexture.imageHeight / (float)ScreenHeight();
+
+				Draw(x, y, skyTexture.getPixel((int)tx, (int)ty));
+
+			}
+		}
+
+	}
+
 public:
 
 	bool OnUserCreate() override {
 
 		player.position = olc::vd2d(256, 256);
 		
-		room = Room(20, 20);
+		int szOfRm = 80;
 
-		room.addWallTexture("Resourses/wall.jpg");
-		room.addFloorTexture("Resourses/floor.png");
-		room.addCeilTexture("Resourses/ceiling.jpg");
+		room = Room(szOfRm, szOfRm);
 
-		for (int k = 0; k < 400; k++) {
+		room.addWallTexture("Resources/wall.jpg");
+		room.addFloorTexture("Resources/floor.png");
+		room.addCeilTexture("Resources/ceiling.jpg");
+
+		skyTexture = Texture("Resources/sky.jpg");
+
+		for (int k = 0; k < szOfRm * szOfRm; k++) {
 		
 			if (level[k] != 0) {
-				room.changeBlock(k % 20, k / 20, blockTypes::WALL);
-				room.changeWallTexture(k % 20, k / 20, 0);
-				room.changeFloorTexture(k % 20, k / 20, 0);
-				room.changeCeilTexture(k % 20, k / 20, 0);
+
+				room.changeBlock(k % szOfRm, k / szOfRm, blockTypes::WALL);
+				room.changeWallTexture(k % szOfRm, k / szOfRm, 0);
+				room.changeFloorTexture(k % szOfRm, k / szOfRm, 0);
+				room.changeCeilTexture(k % szOfRm, k / szOfRm, 0);
+
 			}
 
 		}
@@ -439,11 +471,12 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override {
 
 		getInputs(fElapsedTime);
-		Clear(olc::Pixel(135, 206, 235));
 
-		
+		//Clear(olc::Pixel(135, 206, 235));
 
 		renderScene(fov, numberOfRays);
+
+		drawSky();
 		
 		return true;
 	}
@@ -453,7 +486,7 @@ int main() {
 
 	Example demo;
 	
-	if (demo.Construct(256, 240, 4, 4))
+	if (demo.Construct(256 / 2, 240 / 2, 8, 8))
 		demo.Start();
 
 	return 0;

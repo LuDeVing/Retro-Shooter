@@ -1,5 +1,9 @@
 #include "misc.h"
 
+Texture::Texture() {
+	imageWidth = imageHeight = channels = 0;
+}
+
 Texture::Texture(const char* filePath) {
 	imageData = stbi_load(filePath, &imageWidth, &imageHeight, &channels, 0);	
 }
