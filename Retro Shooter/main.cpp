@@ -12,6 +12,9 @@
 #define PI 3.14159265359
 #define DEG 0.0174533
 
+constexpr int screenWidth = 256;
+constexpr int screenheight = 240;
+
 int level[400] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,	
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
@@ -42,6 +45,7 @@ public:
 	Room room;
 
 	Texture skyTexture;
+	Enemy spp;
 
 	const int cubeSize = 64;
 
@@ -50,6 +54,8 @@ public:
 
 	float ceilShade = 0.7f;
 	float floorShade = 0.7f;
+
+	float depthBuffer[screenWidth];
 
 	Example() {
 		sAppName = "Example";
@@ -283,13 +289,15 @@ public:
 			std::pair <float, std::pair<olc::vd2d, bool>> retVal = getRayDistance(room, useDeg);
 			curDist = retVal.first, curInter = retVal.second.first, side = retVal.second.second;
 
+			depthBuffer[x] = curDist;
+
 			float curLightMultiplier = (!side ? 1.0f : 0.7f);
 
 			curDist *= cosf(degBet);
 
 			float lineHeight = (cubeSize * ScreenHeight()) / curDist;
-
 			float unclippedLineHeight = lineHeight;
+
 			lineHeight = std::min(lineHeight, (float)ScreenHeight());
 
 			olc::Pixel curColor((float)255 * curLightMultiplier, (float)255 * curLightMultiplier, (float)255 * curLightMultiplier);
@@ -333,74 +341,79 @@ public:
 			}
 			else DrawLine(olc::vd2d(x, (ScreenHeight() - lineHeight) / 2), olc::vd2d(x, (ScreenHeight() + lineHeight) / 2), curColor);
 
-			if (curWall.floorTextureID != -1) {
+			for (int y = (ScreenHeight() + lineHeight) / 2 + 1; y < ScreenHeight(); y++) {
 
-				for (int y = (ScreenHeight() + lineHeight) / 2 + 1; y < ScreenHeight(); y++) {
+				float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
 
-					float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
+				float px = player.position.x;
+				float py = player.position.y;
 
-					float px = player.position.x;
-					float py = player.position.y;
+				float magicNum = 158.0f * ((float)ScreenHeight() / 320.0f);
 
-					float magicNum = 158.0f * ((float)ScreenHeight() / 320.0f);
+				float tx = px / 2 + cos(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+				float ty = py / 2 + sin(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
 
-					float tx = px / 2 + cos(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
-					float ty = py / 2 + sin(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+				int mpX = tx / (cubeSize / 2.0);
+				int mpY = ty / (cubeSize / 2.0);
 
-					int curImgWidth = room.getFloorTexture(curWall.floorTextureID).imageWidth;
-					int curImgHeight = room.getFloorTexture(curWall.floorTextureID).imageHeight;
+				Block& curFloorWall = room.getBlock(mpX, mpY);
 
-					tx /= (float)cubeSize / (float)curImgWidth;
-					ty /= (float)cubeSize / (float)curImgHeight;
+				int curImgWidth = room.getFloorTexture(curFloorWall.floorTextureID).imageWidth;
+				int curImgHeight = room.getFloorTexture(curFloorWall.floorTextureID).imageHeight;
 
-					tx = ((int)tx & (curImgWidth - 1));
-					ty = ((int)ty & (curImgHeight - 1));
+				tx /= (float)cubeSize / (float)curImgWidth;
+				ty /= (float)cubeSize / (float)curImgHeight;
 
-					olc::Pixel curColor = room.getFloorTexture(curWall.floorTextureID).getPixel((int)tx, (int)ty);
+				tx = ((int)tx & (curImgWidth - 1));
+				ty = ((int)ty & (curImgHeight - 1));
 
-					curColor.r *= floorShade;
-					curColor.g *= floorShade;
-					curColor.b *= floorShade;
+				olc::Pixel curColor = room.getFloorTexture(curWall.floorTextureID).getPixel((int)tx, (int)ty);
+
+				curColor.r *= floorShade;
+				curColor.g *= floorShade;
+				curColor.b *= floorShade;
 
 
-					Draw(x, y, curColor);
-				}
+				Draw(x, y, curColor);
 			}
+			
+			for (int y = (ScreenHeight() + lineHeight) / 2; y <= ScreenHeight(); y++) {
 
-			if (curWall.hasCeil) {
-				if (curWall.ceilTextureID != -1) {
+				float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
 
-					for (int y = (ScreenHeight() + lineHeight) / 2 + 1; y < ScreenHeight(); y++) {
+				float px = player.position.x;
+				float py = player.position.y;
 
-						float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
+				float magicNum = 158.0f * ((float)ScreenHeight() / 320.0f);
 
-						float px = player.position.x;
-						float py = player.position.y;
+				float tx = px / 2 + cos(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+				float ty = py / 2 + sin(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
 
-						float magicNum = 158.0f * ((float)ScreenHeight() / 320.0f);
+				int mpX = tx / (cubeSize / 2.0);
+				int mpY = ty / (cubeSize / 2.0);
 
-						float tx = px / 2 + cos(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
-						float ty = py / 2 + sin(useDeg) * magicNum * (cubeSize / 2.0) / dy / raFix;
+				Block& curCeilWall = room.getBlock(mpX, mpY);
 
-						int curImgWidth = room.getCeilTexture(curWall.ceilTextureID).imageWidth;
-						int curImgHeight = room.getCeilTexture(curWall.ceilTextureID).imageHeight;
+				if (curCeilWall.hasCeil == false)
+					continue;
 
-						tx /= (float)cubeSize / (float)curImgWidth;
-						ty /= (float)cubeSize / (float)curImgHeight;
+				int curImgWidth = room.getCeilTexture(curCeilWall.ceilTextureID).imageWidth;
+				int curImgHeight = room.getCeilTexture(curCeilWall.ceilTextureID).imageHeight;
 
-						tx = ((int)tx & (curImgWidth - 1));
-						ty = ((int)ty & (curImgHeight - 1));
+				tx /= (float)cubeSize / (float)curImgWidth;
+				ty /= (float)cubeSize / (float)curImgHeight;
 
-						olc::Pixel curColor = room.getCeilTexture(curWall.ceilTextureID).getPixel((int)tx, (int)ty);
+				tx = ((int)tx & (curImgWidth - 1));
+				ty = ((int)ty & (curImgHeight - 1));
 
-						curColor.r *= ceilShade;
-						curColor.g *= ceilShade;
-						curColor.b *= ceilShade;
+				olc::Pixel curColor = room.getCeilTexture(curWall.ceilTextureID).getPixel((int)tx, (int)ty);
+
+				curColor.r *= ceilShade;
+				curColor.g *= ceilShade;
+				curColor.b *= ceilShade;
 
 
-						Draw(x, ScreenHeight() - y, curColor);
-					}
-				}
+				Draw(x, ScreenHeight() - y, curColor);
 			}
 
 			curDeg += DEG * ((float)fov / (float)numberOfRays);
@@ -413,20 +426,87 @@ public:
 
 		float playerRotInDegs = float(player.roation / (2 * PI) * 360.0f);
 
-		std::cout << playerRotInDegs << '\n';
-
 		for (int y = ScreenHeight() / 2; y >= 0; y--) {
 			for (int x = 0; x < ScreenWidth(); x++) {
 
-				float xRotated = (playerRotInDegs + x);
+				float xRotated = playerRotInDegs * (ScreenWidth() / float(128) * 2) + x;
+				if (xRotated < 0) { xRotated += 120; } xRotated = (int)xRotated % 120;
 
-				
-				//std::cout << xRotated <<' ';
-
-				float tx = xRotated * skyTexture.imageWidth / ((float)fov / (float)ScreenWidth());
-				float ty = y * skyTexture.imageHeight / (float)ScreenHeight();
+				float tx = xRotated * skyTexture.imageWidth / (float)ScreenWidth() * 2;
+				float ty = y * skyTexture.imageHeight / (float)ScreenHeight() * 2;
 
 				Draw(x, y, skyTexture.getPixel((int)tx, (int)ty));
+
+			}
+		}
+
+	}
+
+	void drawSprite(Sprite curSprite) {
+
+		float dx = curSprite.x - player.position.x;
+		float dy = curSprite.y - player.position.y;
+		float dz = curSprite.z;
+
+		const float minDist = cubeSize / 2.8f;
+
+		if (dx * dx + dy * dy < minDist * minDist)
+			return;
+
+		olc::vd2d curForwardVec = olc::vd2d(cos(player.roation), sin(player.roation));
+		olc::vd2d curVecDir = olc::vd2d(-dx, -dy);
+
+		float dotProd = curForwardVec.dot(curVecDir);
+
+		if (dotProd > 0)
+			return;
+
+		float csns = cosf(-(player.roation));
+		float sns = sinf(-(player.roation));
+
+		float rt1 = dy * csns + dx * sns;
+		float rt2 = dx * csns - dy * sns;
+
+		dx = rt1;
+		dy = rt2;
+
+		float magicNum = 108.0f / 128.0f * (float)ScreenWidth();
+
+		dx = (dx * magicNum / dy) + (ScreenHeight() / 2.0f);
+		dy = (dz * magicNum / dy) + (ScreenWidth() / 2.0f);
+
+		olc::Pixel curCol;
+
+		int tx;
+		int ty;
+
+		int txW = room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth;
+		int txH = room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageHeight;
+
+		float ScaleMult = (80.0f / 256.0f * (float)ScreenWidth()) / rt2;
+
+		float heightScaled = curSprite.height * ScaleMult;
+		float widthScaled = curSprite.width * ScaleMult;
+
+		for (int y = 0; y <= heightScaled; y++) {
+
+			if (dy - y < 0 || dy - y > ScreenHeight())
+				continue;
+
+			for (int x = 0; x <= widthScaled; x++) {
+
+				int xPlace = dx + x - widthScaled / 2;
+
+				if (xPlace < 0 || xPlace >= ScreenWidth() || rt2 > depthBuffer[xPlace])
+					continue;
+
+				tx = (float)x * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
+				ty = (float)y * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
+
+				curCol = room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).getPixel(txW - tx, txH - ty);
+				
+				if(curCol.a != 0)
+					Draw(xPlace, dy - y, curCol);
 
 			}
 		}
@@ -439,7 +519,7 @@ public:
 
 		player.position = olc::vd2d(256, 256);
 		
-		int szOfRm = 80;
+		int szOfRm = 40;
 
 		room = Room(szOfRm, szOfRm);
 
@@ -447,7 +527,12 @@ public:
 		room.addFloorTexture("Resources/floor.png");
 		room.addCeilTexture("Resources/ceiling.jpg");
 
-		skyTexture = Texture("Resources/sky.jpg");
+		skyTexture = Texture("Resources/sky.bmp");
+
+		spp = Enemy(256, 256, 30, cubeSize * 2, cubeSize * 2);
+		spp.textureID = 0;
+
+		room.addSpriteTexture("Resources/spainPenguin.png", spp.textureSectionID);
 
 		for (int k = 0; k < szOfRm * szOfRm; k++) {
 		
@@ -457,6 +542,16 @@ public:
 				room.changeWallTexture(k % szOfRm, k / szOfRm, 0);
 				room.changeFloorTexture(k % szOfRm, k / szOfRm, 0);
 				room.changeCeilTexture(k % szOfRm, k / szOfRm, 0);
+
+			}
+			else {
+
+				room.changeWallTexture(k % szOfRm, k / szOfRm, 0);
+				room.changeFloorTexture(k % szOfRm, k / szOfRm, 0);
+				room.changeCeilTexture(k % szOfRm, k / szOfRm, 0);
+
+				if (k % szOfRm != 2 && k / szOfRm != 2 && k / szOfRm != 3)
+					room.getBlock(k % szOfRm, k / szOfRm).hasCeil = false;
 
 			}
 
@@ -474,9 +569,11 @@ public:
 
 		//Clear(olc::Pixel(135, 206, 235));
 
-		renderScene(fov, numberOfRays);
+		spp.enemyCicle(player, fElapsedTime);
 
 		drawSky();
+		renderScene(fov, numberOfRays);
+		drawSprite(spp);
 		
 		return true;
 	}
@@ -485,9 +582,10 @@ public:
 int main() {
 
 	Example demo;
-	
-	if (demo.Construct(256 / 2, 240 / 2, 8, 8))
+
+	if (demo.Construct(screenWidth, screenheight, 5, 5))
 		demo.Start();
 
 	return 0;
 }
+
