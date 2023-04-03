@@ -16,25 +16,25 @@ constexpr int screenWidth = 256;
 constexpr int screenheight = 240;
 
 int level[400] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,	
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ,1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,	
-	1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
-	1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,	
-	1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,	
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,	
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ,1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+	1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
@@ -66,7 +66,7 @@ public:
 	std::pair <float, std::pair<olc::vd2d, bool>> getRayDistance(Room& curRoom, float rot) {
 
 		olc::vd2d rayPos = olc::vd2d(player.position);
-		
+
 		bool side;
 
 		float shortestLength = 10000000000;
@@ -76,10 +76,10 @@ public:
 
 		bool breakFromLoop = false;
 
-		olc::vd2d retVal(-10000000000,  -10000000000);
+		olc::vd2d retVal(-10000000000, -10000000000);
 
 		if (rot != 2 * PI && rot > PI) {
-			
+
 			intery = int(rayPos.y) / cubeSize * cubeSize - 0.0001;
 			interx = rayPos.x - (rayPos.y - intery) / tanf(rot);
 
@@ -95,12 +95,12 @@ public:
 			dy = cubeSize;
 			dx = cubeSize / tanf(rot);
 
-		} 
+		}
 
-		if(rot == 0 || rot == PI) {
+		if (rot == 0 || rot == PI) {
 			breakFromLoop = true;
 		}
-	
+
 		while (!breakFromLoop) {
 
 			int pointx = interx / cubeSize;
@@ -113,11 +113,11 @@ public:
 
 				float delX2 = (interx - rayPos.x) * (interx - rayPos.x);
 				float delY2 = (intery - rayPos.y) * (intery - rayPos.y);
-				
+
 				float newLenght = sqrtf(delX2 + delY2);
 
 				if (newLenght < shortestLength) {
-					
+
 					shortestLength = newLenght;
 					retVal = olc::vd2d(interx, intery);
 					side = 0;
@@ -155,8 +155,8 @@ public:
 			dy = cubeSize * tanf(rot);
 
 		}
-		
-		if(rot == PI / 2 || rot == rot > 3 * PI / 2) {
+
+		if (rot == PI / 2 || rot == rot > 3 * PI / 2) {
 			breakFromLoop = true;
 		}
 
@@ -232,7 +232,7 @@ public:
 	void getInputs(float fElapsedTime) {
 
 		if (GetKey(olc::A).bHeld) {
-			
+
 			player.roation -= DEG * 100 * fElapsedTime;
 
 			if (player.roation < 0)
@@ -261,7 +261,7 @@ public:
 		}
 
 		if (GetKey(olc::S).bHeld) {
-			
+
 			float moveX = -player.speed * cosf(player.roation) * fElapsedTime;
 			float moveY = -player.speed * sinf(player.roation) * fElapsedTime;
 
@@ -376,7 +376,7 @@ public:
 
 				Draw(x, y, curColor);
 			}
-						
+
 			for (int y = (ScreenHeight() + lineHeight) / 2; y <= ScreenHeight(); y++) {
 
 				float dy = y - (ScreenHeight() / 2.0), raFix = cosf(degBet);
@@ -448,7 +448,7 @@ public:
 		float dy = curSprite.y - player.position.y;
 		float dz = curSprite.z;
 
-		const float minDist = cubeSize / 2.8f;
+		const float minDist = cubeSize / 2.9f;
 
 		if (dx * dx + dy * dy < minDist * minDist)
 			return;
@@ -504,8 +504,8 @@ public:
 				ty = (float)y * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
 
 				curCol = room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).getPixel(txW - tx, txH - ty);
-				
-				if(curCol.a != 0)
+
+				if (curCol.a != 0)
 					Draw(xPlace, dy - y, curCol);
 
 			}
@@ -518,7 +518,7 @@ public:
 	bool OnUserCreate() override {
 
 		player.position = olc::vd2d(256, 256);
-		
+
 		int szOfRm = 40;
 
 		room = Room(szOfRm, szOfRm);
@@ -535,7 +535,7 @@ public:
 		room.addSpriteTexture("Resources/spainPenguin.png", spp.textureSectionID);
 
 		for (int k = 0; k < szOfRm * szOfRm; k++) {
-		
+
 			if (level[k] != 0) {
 
 				room.changeBlock(k % szOfRm, k / szOfRm, blockTypes::WALL);
@@ -575,7 +575,7 @@ public:
 		renderScene(fov, numberOfRays);
 		drawSprite(spp);
 
-		
+
 		return true;
 	}
 };
@@ -586,7 +586,7 @@ int main() {
 
 	if (demo.Construct(screenWidth, screenheight, 5, 5))
 		demo.Start();
-	
+
 	return 0;
 }
 
