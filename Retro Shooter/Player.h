@@ -11,6 +11,7 @@ public:
 	float roation = 0.0f;
 
 	float speed = 200.0f;
+	float radius = 2;
 	
 	Player() = default;
 

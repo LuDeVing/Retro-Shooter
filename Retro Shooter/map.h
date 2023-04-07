@@ -2,6 +2,9 @@
 #define MAPCLASS_H
 
 #include <vector>
+#include <set>
+#include <utility>
+
 #include "misc.h"
 #include "Player.h"
 
@@ -16,6 +19,19 @@ struct Block {
 	int floorTextureID = -1;
 
 	bool hasCeil = true;
+
+};
+
+struct MapData {
+	
+	std::vector <Block>* map;
+
+	int width;
+	int height;
+
+	int cubeSize;
+
+	MapData();
 
 };
 
@@ -38,23 +54,61 @@ struct Sprite {
 };
 
 
-struct Enemy : public Sprite {
+class Enemy : public Sprite {
+
+public:
+
+	float health = 100.0f;
 
 	float speed = 75.0f;
+	float radius = 1.0f;
+
+	float entityRadius = 15.0f;
 
 	Enemy();
 	Enemy(float x, float y, float z, float width, float height);
 
-	void enemyCicle(Player& player, float elapsedTime);
+	void enemyCicle(Player& player, MapData& map, float elapsedTime);
+
+private:
+
+	float sqrtof2 = sqrtf(2.0f);
+
+	bool fixCollisionOnRadius(MapData& map);
+	void fixEnemyToWallCollision(MapData& map, float moveX, float moveY);
+
+	Block& getBlockFloat(MapData& map, float x, float y);
+	Block& getBlockInt(MapData& map, int x, int y);
+	olc::vd2d findShortestPath(MapData& map, olc::vd2d startIdxF, olc::vd2d endIdxF);
 
 };
 
 struct Bullet : public Sprite {
 
+	float damage = 20.0f;
+
+	olc::vd2d direction;
+	float speed = 1000.0f;
+	float radius = 0.5f;
+
+	float entityRadius = 3.0f;
+
 	Bullet();
 	Bullet(float x, float y, float z, float width, float height);
 
-	void bulletCicle(Player& player, float elapsedTime);
+	bool bulletCicle(Player& player, std::vector <Enemy>& enemies, MapData& map, float elapsedTime);
+
+private:
+
+	float sqrtof2 = sqrtf(2.0f);
+
+	bool getBulletToWallCollision(MapData& map);
+	bool bulletAndEnemyCollision(std::vector <Enemy>& enemies, Player& player);
+
+	bool checkProjectionLength(Player& player, Enemy& enemy, float distEpsilon);
+
+	Block& getBlockFloat(MapData& map, float x, float y);
+	Block& getBlockInt(MapData& map, int x, int y);
 
 };
 
@@ -77,6 +131,11 @@ public:
 
 	Room() = default;
 	Room(int mapWidth, int mapHeight);
+
+	int getHeight();
+	int getWidth();
+
+	std::vector <Block>& getMap();
 
 	void changeBlock(int x, int y, blockTypes type);
 	void changeWallTexture(int x, int y, int textureID);

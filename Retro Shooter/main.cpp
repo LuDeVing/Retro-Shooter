@@ -42,12 +42,18 @@ class Example : public olc::PixelGameEngine {
 public:
 
 	Player player;
+
 	Room room;
+	MapData mapData;
 
 	Texture skyTexture;
-	Enemy spp;
+
+	std::vector <Enemy> enemies;
+	std::vector <Bullet> bullets;
 
 	const int cubeSize = 64;
+
+	const float sqrtof2 = sqrtf(2.0f);
 
 	int fov;
 	int numberOfRays;
@@ -198,18 +204,38 @@ public:
 
 	/*************************************** HELPER FUNCTIONS ***************************************/
 
+	bool fixCollisionOnRadius() {
+
+		float posX, posY;
+
+		for (int k = -1; k <= 1; k++) {
+			for (int j = -1; j <= 1; j++) {
+
+				posX = player.position.x + player.radius * (j == 0 ? k : k * sqrtof2);
+				posY = player.position.y + player.radius * (k == 0 ? j : j * sqrtof2);
+				
+				if (room.getBlockSizeAdjusted(posX, posY, cubeSize).type != blockTypes::NONE)
+					return true;
+
+			}
+		}
+
+		return false;
+
+	}
+
 	void fixPlayerToWallCollision(float moveX, float moveY) {
 
-		if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+		if (fixCollisionOnRadius()) {
 			player.position.x -= moveX;
 		}
 
-		if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+		if (fixCollisionOnRadius()) {
 			player.position.x += moveX;
 			player.position.y -= moveY;
 		}
 
-		if (room.getBlockSizeAdjusted(player.position.x, player.position.y, cubeSize).type != blockTypes::NONE) {
+		if (fixCollisionOnRadius()) {
 			player.position.x -= moveX;
 		}
 
@@ -271,6 +297,15 @@ public:
 			fixPlayerToWallCollision(moveX, moveY);
 
 		}
+
+		if (GetKey(olc::SPACE).bPressed) {
+
+			bullets.push_back(Bullet(player.position.x, player.position.y, 7.0f, 20, 20));
+			bullets[bullets.size() - 1].direction = olc::vd2d(cosf(player.roation), sinf(player.roation));
+			bullets[bullets.size() - 1].textureID = 0;
+
+		}
+
 
 	}
 
@@ -500,6 +535,8 @@ public:
 				if (xPlace < 0 || xPlace >= ScreenWidth() || rt2 > depthBuffer[xPlace])
 					continue;
 
+				depthBuffer[xPlace] = rt2;
+
 				tx = (float)x * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
 				ty = (float)y * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
 
@@ -529,10 +566,12 @@ public:
 
 		skyTexture = Texture("Resources/sky.bmp");
 
-		spp = Enemy(256, 256, 30, cubeSize * 2, cubeSize * 2);
-		spp.textureID = 0;
+		enemies.push_back(Enemy(256, 256, 30, cubeSize * 2, cubeSize * 2));
+		enemies[enemies.size() - 1].textureID = 0;
 
-		room.addSpriteTexture("Resources/spainPenguin.png", spp.textureSectionID);
+		room.addSpriteTexture("Resources/spainPenguin.png", enemies[enemies.size() - 1].textureSectionID);
+
+		room.addSpriteTexture("Resources/EnergyBall.png", 2);
 
 		for (int k = 0; k < szOfRm * szOfRm; k++) {
 
@@ -557,6 +596,13 @@ public:
 
 		}
 
+		mapData.cubeSize = cubeSize;
+
+		mapData.width = room.getWidth();
+		mapData.height = room.getHeight();
+
+		mapData.map = &room.getMap();
+
 		fov = 60;
 		numberOfRays = ScreenWidth();
 
@@ -569,12 +615,38 @@ public:
 
 		//Clear(olc::Pixel(135, 206, 235));
 
-		spp.enemyCicle(player, fElapsedTime);
-
 		drawSky();
 		renderScene(fov, numberOfRays);
-		drawSprite(spp);
 
+		for (int k = 0; k < enemies.size(); k++) {
+			enemies[k].enemyCicle(player, mapData, fElapsedTime);
+			drawSprite(enemies[k]);
+		}
+
+		for (int k = 0; k < bullets.size(); k++) {
+
+			bool getDestroyed = bullets[k].bulletCicle(player, enemies, mapData, fElapsedTime);
+
+			if (getDestroyed) {
+
+				bullets.erase(bullets.begin() + k);
+				k--;
+
+			}
+			else drawSprite(bullets[k]);
+		
+		}
+
+		for (int k = 0; k < enemies.size(); k++) {
+			
+			if (enemies[k].health <= 0) {
+
+				enemies.erase(enemies.begin() + k);
+				k--;
+
+			}
+
+		}
 
 		return true;
 	}
