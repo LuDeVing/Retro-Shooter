@@ -3,6 +3,8 @@
 
 #include "olcPixelGameEngine.h"
 
+static enum GunState { STATIC, SHOOTING, COOLING };
+
 class Player {
 
 public:
@@ -12,7 +14,10 @@ public:
 
 	float speed = 200.0f;
 	float radius = 2;
-	
+
+	GunState gunState = GunState::STATIC;
+	int gunID = 0;
+
 	Player() = default;
 
 };

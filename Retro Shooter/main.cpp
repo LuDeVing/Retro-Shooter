@@ -50,6 +50,33 @@ public:
 
 	std::vector <Enemy> enemies;
 	std::vector <Bullet> bullets;
+	
+	std::vector <std::vector <Texture> > gunTextures;
+
+	bool shotLastFrame = false;
+
+	struct Gun {
+
+		float width = 0, height = 0;
+
+		int textureID = 0;
+		int bulletID = 0;
+
+		float fireRate = 0.1;
+
+		float shootingStateNum = 0.2;
+		float coolingStateNum = 0.4;
+
+	};
+
+	float shootingStateNumCur = 0;
+	float coolingStateNumCur = 0;
+
+	float fireRateExpired = 0;
+
+	int shootintGunFrame = 0;
+
+	std::vector <Gun> guns;
 
 	const int cubeSize = 64;
 
@@ -63,10 +90,13 @@ public:
 
 	float depthBuffer[screenWidth];
 
+	float globalDeltaTime = 1.0f;
+
 	Example() {
 		sAppName = "Example";
 	}
 
+	
 	/*************************************** MATH FUNCTIONS ***************************************/
 
 	std::pair <float, std::pair<olc::vd2d, bool>> getRayDistance(Room& curRoom, float rot) {
@@ -253,6 +283,50 @@ public:
 
 	}
 
+	void shootGun() {
+
+		player.gunState = SHOOTING;
+
+		shotLastFrame = true;
+
+		if (guns[player.gunID].bulletID == 0) {
+			bullets.push_back(Bullet(player.position.x, player.position.y, 7.0f, 20, 20));
+			bullets[bullets.size() - 1].direction = olc::vd2d(cosf(player.roation), sinf(player.roation));
+			bullets[bullets.size() - 1].textureID = 0;
+		}
+
+	}
+
+	void drawGun(int gunTextureID, int textureID) {
+
+		Texture& curText = gunTextures[gunTextureID][textureID];
+
+		int xStart = ScreenWidth() / 2 - guns[player.gunID].width / 2;
+		int xEnd = ScreenWidth() / 2 + guns[player.gunID].width / 2;
+
+		int yStart = ScreenHeight() - guns[player.gunID].height;
+		int yEnd = ScreenHeight();
+
+		if (xEnd == xStart || yEnd == yStart)
+			return;
+
+		float texDiffX = curText.imageWidth / float(xEnd - xStart);
+		float texDiffY = curText.imageHeight / float(yStart - yEnd);
+
+		for (int y = yStart; y <= yEnd; y++) {
+			for (int x = xStart; x <= xEnd; x++) {
+
+				int xTexCord = (float)(x - xStart) * texDiffX;
+				int yTexCord = (float)(yStart - y) * texDiffY;
+
+				if(curText.getPixel(xTexCord, yTexCord).a != 0)
+					Draw(x, y, curText.getPixel(xTexCord, yTexCord));
+
+			}
+		}
+
+	}
+
 	/*************************************** IMPORTANT FUNCTIONS ***************************************/
 
 	void getInputs(float fElapsedTime) {
@@ -298,13 +372,35 @@ public:
 
 		}
 
-		if (GetKey(olc::SPACE).bPressed) {
+		if (GetKey(olc::SPACE).bHeld) {
 
-			bullets.push_back(Bullet(player.position.x, player.position.y, 7.0f, 20, 20));
-			bullets[bullets.size() - 1].direction = olc::vd2d(cosf(player.roation), sinf(player.roation));
-			bullets[bullets.size() - 1].textureID = 0;
+			if(shootingStateNumCur <= 0)
+				shootingStateNumCur = guns[player.gunID].shootingStateNum;
+
+			if(fireRateExpired == 0)
+				shootGun();
+
+			fireRateExpired = (fireRateExpired + globalDeltaTime);
+
+			if (fireRateExpired >= guns[player.gunID].shootingStateNum)
+				fireRateExpired = 0;
 
 		}
+		else if (shotLastFrame) {
+			
+			player.gunState = COOLING;
+			shotLastFrame = false;
+
+			coolingStateNumCur = guns[player.gunID].coolingStateNum;
+
+			fireRateExpired = 0;
+
+		}
+		else {
+			player.gunState = STATIC;
+			fireRateExpired = 0;
+		}
+	
 
 
 	}
@@ -550,15 +646,48 @@ public:
 
 	}
 
+	void renderGui() {
+
+		if (shootingStateNumCur > 0) {
+
+			if (shootingStateNumCur >= guns[player.gunID].shootingStateNum / 2) {
+				drawGun(guns[player.gunID].textureID, 1);
+			}
+			else drawGun(guns[player.gunID].textureID, 2);
+
+			shootingStateNumCur -= globalDeltaTime;
+
+		}
+		else if (coolingStateNumCur > 0) {
+
+			drawGun(guns[player.gunID].textureID, 3);
+
+			coolingStateNumCur -= globalDeltaTime;
+
+		}
+		else if (player.gunState == STATIC) {
+
+			drawGun(guns[player.gunID].textureID, 0);
+
+		}
+
+	}
+
 public:
 
 	bool OnUserCreate() override {
 
+		// player
+
 		player.position = olc::vd2d(256, 256);
+
+		// room
 
 		int szOfRm = 40;
 
 		room = Room(szOfRm, szOfRm);
+
+		// textures
 
 		room.addWallTexture("Resources/wall.jpg");
 		room.addFloorTexture("Resources/floor.png");
@@ -566,12 +695,16 @@ public:
 
 		skyTexture = Texture("Resources/sky.bmp");
 
+		// enemy
+
 		enemies.push_back(Enemy(256, 256, 30, cubeSize * 2, cubeSize * 2));
 		enemies[enemies.size() - 1].textureID = 0;
 
 		room.addSpriteTexture("Resources/spainPenguin.png", enemies[enemies.size() - 1].textureSectionID);
 
 		room.addSpriteTexture("Resources/EnergyBall.png", 2);
+
+		// fill room
 
 		for (int k = 0; k < szOfRm * szOfRm; k++) {
 
@@ -603,6 +736,28 @@ public:
 
 		mapData.map = &room.getMap();
 
+		// guns
+
+		player.gunID = 0;
+
+		guns.push_back(Gun());
+
+		guns[0].width = (float)ScreenWidth() / 4.0f;
+		guns[0].height = (float)ScreenHeight() / 4.0f;
+
+		guns[0].bulletID = 0;
+		guns[0].fireRate = 10;
+		guns[0].textureID = 0;
+
+		gunTextures.push_back(std::vector<Texture>(4));
+
+		gunTextures[0][0] = Texture("Resources/guns/gunAnim1.png");
+		gunTextures[0][1] = Texture("Resources/guns/gunAnim2.png");
+		gunTextures[0][2] = Texture("Resources/guns/gunAnim3.png");
+		gunTextures[0][3] = Texture("Resources/guns/gunAnim4.png");
+
+		// render variables
+
 		fov = 60;
 		numberOfRays = ScreenWidth();
 
@@ -610,6 +765,8 @@ public:
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override {
+
+		globalDeltaTime = fElapsedTime;
 
 		getInputs(fElapsedTime);
 
@@ -647,6 +804,8 @@ public:
 			}
 
 		}
+
+		renderGui();
 
 		return true;
 	}
