@@ -8,7 +8,7 @@
 #include "misc.h"
 #include "Player.h"
 
-static enum blockTypes { NONE,  WALL };
+static enum blockTypes { NONE,  WALL, DOOR };
 
 struct Block {
 
@@ -19,6 +19,14 @@ struct Block {
 	int floorTextureID = -1;
 
 	bool hasCeil = true;
+
+	float OGCloseTime = 1.5f;
+	float closeTime = OGCloseTime;
+	
+	bool isDoor = false;
+	bool isOpen = false;
+
+	void doorCicle(const olc::vf2d& playerPos, int cubeSize, olc::vi2d thisPos, float deltaTime);
 
 };
 
@@ -63,7 +71,7 @@ public:
 	float speed = 75.0f;
 	float radius = 1.0f;
 
-	float entityRadius = 15.0f;
+	float entityRadius = 25.0f;
 
 	Enemy();
 	Enemy(float x, float y, float z, float width, float height);
@@ -79,7 +87,7 @@ private:
 
 	Block& getBlockFloat(MapData& map, float x, float y);
 	Block& getBlockInt(MapData& map, int x, int y);
-	olc::vd2d findShortestPath(MapData& map, olc::vd2d startIdxF, olc::vd2d endIdxF);
+	olc::vf2d findShortestPath(MapData& map, olc::vf2d startIdxF, olc::vf2d endIdxF);
 
 };
 
@@ -87,7 +95,7 @@ struct Bullet : public Sprite {
 
 	float damage = 20.0f;
 
-	olc::vd2d direction;
+	olc::vf2d direction;
 	float speed = 1000.0f;
 	float radius = 0.5f;
 

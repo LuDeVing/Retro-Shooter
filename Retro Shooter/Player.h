@@ -9,7 +9,7 @@ class Player {
 
 public:
 
-	olc::vd2d position;
+	olc::vf2d position;
 	float roation = 0.0f;
 
 	float speed = 200.0f;

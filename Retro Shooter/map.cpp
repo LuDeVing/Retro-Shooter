@@ -284,7 +284,7 @@ void fillSet(std::multiset <node>& st, std::pair <int, int> cur, std::pair <int,
 
 }
 
-olc::vd2d Enemy::findShortestPath(MapData& map, olc::vd2d startIdxF, olc::vd2d endIdxF) {
+olc::vf2d Enemy::findShortestPath(MapData& map, olc::vf2d startIdxF, olc::vf2d endIdxF) {
 
 	int vsh = map.height;
 	int vsw = map.width;
@@ -352,7 +352,7 @@ olc::vd2d Enemy::findShortestPath(MapData& map, olc::vd2d startIdxF, olc::vd2d e
 
 	}
 
-	return olc::vd2d(retValInt.x * map.cubeSize + map.cubeSize / 2, retValInt.y * map.cubeSize + map.cubeSize / 2);
+	return olc::vf2d(retValInt.x * map.cubeSize + map.cubeSize / 2, retValInt.y * map.cubeSize + map.cubeSize / 2);
 
 }
 
@@ -398,7 +398,7 @@ void Enemy::enemyCicle(Player& player, MapData& map, float elapsedTime) {
 	int dirX = 0;
 	int dirY = 0;
 
-	olc::vd2d nextPos = Enemy::findShortestPath(map, olc::vd2d(x, y), player.position);
+	olc::vf2d nextPos = Enemy::findShortestPath(map, olc::vf2d(x, y), player.position);
 
 	if (x < nextPos.x) dirX = 1;
 	if (x > nextPos.x) dirX = -1;
@@ -468,20 +468,20 @@ bool Bullet::getBulletToWallCollision(MapData& map) {
 
 }
 
-olc::vd2d vectorProjection(const olc::vd2d& v1, const olc::vd2d& v2) {
+olc::vf2d vectorProjection(const olc::vf2d& v1, const olc::vf2d& v2) {
 	float v2_ls = v2.x * v2.x + v2.y * v2.y;
 	return v2 * (v2.dot(v1) / v2_ls);
 }
 
 bool Bullet::checkProjectionLength(Player& player, Enemy& enemy, float distEpsilon) {
 	
-	olc::vd2d playerForVec = olc::vd2d(cosf(player.roation), sinf(player.roation));
+	olc::vf2d playerForVec = olc::vf2d(cosf(player.roation), sinf(player.roation));
 
-	olc::vd2d vecBullet = olc::vd2d(x - player.position.x, y - player.position.y);
-	olc::vd2d vecEnemy = olc::vd2d(enemy.x - player.position.x, enemy.y - player.position.y);
+	olc::vf2d vecBullet = olc::vf2d(x - player.position.x, y - player.position.y);
+	olc::vf2d vecEnemy = olc::vf2d(enemy.x - player.position.x, enemy.y - player.position.y);
 
-	olc::vd2d bulletProj = (vecBullet, playerForVec);
-	olc::vd2d enemyProj = (vecEnemy, playerForVec);
+	olc::vf2d bulletProj = (vecBullet, playerForVec);
+	olc::vf2d enemyProj = (vecEnemy, playerForVec);
 
 	float dist1 = bulletProj.x * bulletProj.x + bulletProj.y * bulletProj.y;
 	float dist2 = enemyProj.x * enemyProj.x + enemyProj.y * enemyProj.y;
@@ -526,5 +526,24 @@ bool Bullet::bulletCicle(Player& player, std::vector <Enemy>& enemies, MapData& 
 
 }
 
+// ****************************************** DOOR ****************************************** //
 
+void Block::doorCicle(const olc::vf2d& playerPos, int cubeSize, olc::vi2d thisPos, float deltaTime) {
 
+	if (isOpen) {
+
+		type = NONE;
+		closeTime -= deltaTime;
+		
+		if (thisPos.x == (int)playerPos.x / cubeSize && thisPos.y == (int)playerPos.y / cubeSize)
+			closeTime = 0.3f;
+
+		if (closeTime <= 0) {
+			closeTime = OGCloseTime;
+			type = DOOR;
+			isOpen = false;
+		}
+
+	}
+
+}

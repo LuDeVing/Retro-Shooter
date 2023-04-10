@@ -15,6 +15,9 @@
 constexpr int screenWidth = 256;
 constexpr int screenheight = 240;
 
+int roomWidth = 20;
+int roomHeight = 20;
+
 int level[400] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -31,10 +34,10 @@ int level[400] = {
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+	1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 1,
 	1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
@@ -62,9 +65,7 @@ public:
 		int textureID = 0;
 		int bulletID = 0;
 
-		float fireRate = 0.1;
-
-		float shootingStateNum = 0.2;
+		float shootingStateNum = 0.1; // Lower this is higher fire rate is
 		float coolingStateNum = 0.4;
 
 	};
@@ -99,9 +100,9 @@ public:
 	
 	/*************************************** MATH FUNCTIONS ***************************************/
 
-	std::pair <float, std::pair<olc::vd2d, bool>> getRayDistance(Room& curRoom, float rot) {
+	std::pair <float, std::pair<olc::vf2d, bool>> getRayDistance(Room& curRoom, float rot) {
 
-		olc::vd2d rayPos = olc::vd2d(player.position);
+		olc::vf2d rayPos = olc::vf2d(player.position);
 
 		bool side;
 
@@ -112,7 +113,7 @@ public:
 
 		bool breakFromLoop = false;
 
-		olc::vd2d retVal(-10000000000, -10000000000);
+		olc::vf2d retVal(-10000000000, -10000000000);
 
 		if (rot != 2 * PI && rot > PI) {
 
@@ -155,7 +156,7 @@ public:
 				if (newLenght < shortestLength) {
 
 					shortestLength = newLenght;
-					retVal = olc::vd2d(interx, intery);
+					retVal = olc::vf2d(interx, intery);
 					side = 0;
 
 				}
@@ -214,7 +215,7 @@ public:
 				if (newLenght < shortestLength) {
 
 					shortestLength = newLenght;
-					retVal = olc::vd2d(interx, intery);
+					retVal = olc::vf2d(interx, intery);
 					side = 1;
 
 				}
@@ -291,7 +292,7 @@ public:
 
 		if (guns[player.gunID].bulletID == 0) {
 			bullets.push_back(Bullet(player.position.x, player.position.y, 7.0f, 20, 20));
-			bullets[bullets.size() - 1].direction = olc::vd2d(cosf(player.roation), sinf(player.roation));
+			bullets[bullets.size() - 1].direction = olc::vf2d(cosf(player.roation), sinf(player.roation));
 			bullets[bullets.size() - 1].textureID = 0;
 		}
 
@@ -330,6 +331,8 @@ public:
 	/*************************************** IMPORTANT FUNCTIONS ***************************************/
 
 	void getInputs(float fElapsedTime) {
+
+		// Moving
 
 		if (GetKey(olc::A).bHeld) {
 
@@ -372,6 +375,8 @@ public:
 
 		}
 
+		// Shooting
+
 		if (GetKey(olc::SPACE).bHeld) {
 
 			if(shootingStateNumCur <= 0)
@@ -400,7 +405,20 @@ public:
 			player.gunState = STATIC;
 			fireRateExpired = 0;
 		}
-	
+		
+		// Interacting
+
+		if (GetKey(olc::E).bPressed) {
+
+			olc::vf2d forPos = olc::vf2d(player.position.x + cubeSize / 3.0f * cosf(player.roation), player.position.y + cubeSize / 3.0f * sinf(player.roation));
+			
+			Block& curBlock = room.getBlockSizeAdjusted(forPos.x, forPos.y, cubeSize);
+
+			if (curBlock.type == DOOR) {
+				curBlock.isOpen = true;
+			}
+
+		}
 
 
 	}
@@ -415,9 +433,9 @@ public:
 			float degBet = fixAngle(player.roation - useDeg);
 
 			float curDist; bool side;
-			olc::vd2d curInter;
+			olc::vf2d curInter;
 
-			std::pair <float, std::pair<olc::vd2d, bool>> retVal = getRayDistance(room, useDeg);
+			std::pair <float, std::pair<olc::vf2d, bool>> retVal = getRayDistance(room, useDeg);
 			curDist = retVal.first, curInter = retVal.second.first, side = retVal.second.second;
 
 			depthBuffer[x] = curDist;
@@ -470,7 +488,7 @@ public:
 				}
 
 			}
-			else DrawLine(olc::vd2d(x, (ScreenHeight() - lineHeight) / 2), olc::vd2d(x, (ScreenHeight() + lineHeight) / 2), curColor);
+			else DrawLine(olc::vf2d(x, (ScreenHeight() - lineHeight) / 2), olc::vf2d(x, (ScreenHeight() + lineHeight) / 2), curColor);
 
 			for (int y = (ScreenHeight() + lineHeight) / 2 + 1; y < ScreenHeight(); y++) {
 
@@ -584,8 +602,8 @@ public:
 		if (dx * dx + dy * dy < minDist * minDist)
 			return;
 
-		olc::vd2d curForwardVec = olc::vd2d(cos(player.roation), sin(player.roation));
-		olc::vd2d curVecDir = olc::vd2d(-dx, -dy);
+		olc::vf2d curForwardVec = olc::vf2d(cos(player.roation), sin(player.roation));
+		olc::vf2d curVecDir = olc::vf2d(-dx, -dy);
 
 		float dotProd = curForwardVec.dot(curVecDir);
 
@@ -673,19 +691,33 @@ public:
 
 	}
 
+	void roomLogic() {
+
+		for (int y = 0; y < roomHeight; y++) {
+			for (int x = 0; x < roomWidth; x++) {
+
+				Block& curBlock = room.getBlock(x, y);
+
+				if (curBlock.isDoor) {
+					curBlock.doorCicle(player.position, cubeSize, olc::vi2d(x, y), globalDeltaTime);
+				}
+
+			}
+		}
+
+	}
+
 public:
 
 	bool OnUserCreate() override {
 
 		// player
 
-		player.position = olc::vd2d(256, 256);
+		player.position = olc::vf2d(256, 256 * 2);
 
 		// room
 
-		int szOfRm = 40;
-
-		room = Room(szOfRm, szOfRm);
+		room = Room(roomWidth, roomHeight);
 
 		// textures
 
@@ -693,11 +725,13 @@ public:
 		room.addFloorTexture("Resources/floor.png");
 		room.addCeilTexture("Resources/ceiling.jpg");
 
+		room.addWallTexture("Resources/door.jpg");
+
 		skyTexture = Texture("Resources/sky.bmp");
 
 		// enemy
 
-		enemies.push_back(Enemy(256, 256, 30, cubeSize * 2, cubeSize * 2));
+		enemies.push_back(Enemy(256 * 2, 256 * 2, 30, cubeSize * 2, cubeSize * 2));
 		enemies[enemies.size() - 1].textureID = 0;
 
 		room.addSpriteTexture("Resources/spainPenguin.png", enemies[enemies.size() - 1].textureSectionID);
@@ -706,27 +740,39 @@ public:
 
 		// fill room
 
-		for (int k = 0; k < szOfRm * szOfRm; k++) {
+		for(int y = 0; y < roomHeight; y++) {
+			for (int x = 0; x < roomWidth; x++) {
 
-			if (level[k] != 0) {
+				if (level[y * roomWidth + x] == 1) {
 
-				room.changeBlock(k % szOfRm, k / szOfRm, blockTypes::WALL);
-				room.changeWallTexture(k % szOfRm, k / szOfRm, 0);
-				room.changeFloorTexture(k % szOfRm, k / szOfRm, 0);
-				room.changeCeilTexture(k % szOfRm, k / szOfRm, 0);
+					room.changeBlock(x, y, blockTypes::WALL);
+					room.changeWallTexture(x, y, 0);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+				}
+				else if (level[y * roomWidth + x] == 2) {
+
+					room.changeBlock(x, y, blockTypes::DOOR);
+					room.changeWallTexture(x, y, 1);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					room.getBlock(x, y).isDoor = true;	
+
+				}
+				else  {
+
+					room.changeWallTexture(x, y, 0);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					if (x != 2 && y != 2 && y != 3)
+						room.getBlock(x, y).hasCeil = false;
+
+				}
 
 			}
-			else {
-
-				room.changeWallTexture(k % szOfRm, k / szOfRm, 0);
-				room.changeFloorTexture(k % szOfRm, k / szOfRm, 0);
-				room.changeCeilTexture(k % szOfRm, k / szOfRm, 0);
-
-				if (k % szOfRm != 2 && k / szOfRm != 2 && k / szOfRm != 3)
-					room.getBlock(k % szOfRm, k / szOfRm).hasCeil = false;
-
-			}
-
 		}
 
 		mapData.cubeSize = cubeSize;
@@ -746,7 +792,6 @@ public:
 		guns[0].height = (float)ScreenHeight() / 4.0f;
 
 		guns[0].bulletID = 0;
-		guns[0].fireRate = 10;
 		guns[0].textureID = 0;
 
 		gunTextures.push_back(std::vector<Texture>(4));
@@ -769,6 +814,8 @@ public:
 		globalDeltaTime = fElapsedTime;
 
 		getInputs(fElapsedTime);
+
+		roomLogic();
 
 		//Clear(olc::Pixel(135, 206, 235));
 
@@ -820,4 +867,3 @@ int main() {
 
 	return 0;
 }
-
