@@ -73,20 +73,28 @@ public:
 
 	float entityRadius = 25.0f;
 
-	Enemy();
-	Enemy(float x, float y, float z, float width, float height);
+	float fireRate = 0.5f;
 
-	void enemyCicle(Player& player, MapData& map, float elapsedTime);
+	bool isActive = false;
+	int bulletTagID = 0;
+
+	Enemy(int mapWidth, int mapHeight);
+	Enemy(float x, float y, float z, float width, float height, int mapWidth, int mapHeight);
+
+	bool enemyCicle(Player& player, MapData& map, float elapsedTime);
 
 private:
+
+
+	std::vector <std::vector <bool> > used;
+
+	float curFireRateNum = 0.2f;
 
 	float sqrtof2 = sqrtf(2.0f);
 
 	bool fixCollisionOnRadius(MapData& map);
 	void fixEnemyToWallCollision(MapData& map, float moveX, float moveY);
 
-	Block& getBlockFloat(MapData& map, float x, float y);
-	Block& getBlockInt(MapData& map, int x, int y);
 	olc::vf2d findShortestPath(MapData& map, olc::vf2d startIdxF, olc::vf2d endIdxF);
 
 };
@@ -99,10 +107,12 @@ struct Bullet : public Sprite {
 	float speed = 1000.0f;
 	float radius = 0.5f;
 
-	float entityRadius = 3.0f;
+	float entityRadius = 1.0f;
+
+	int bulletTagID = 0;
 
 	Bullet();
-	Bullet(float x, float y, float z, float width, float height);
+	Bullet(float x, float y, float z, float width, float height, int bulletTagID = 0);
 
 	bool bulletCicle(Player& player, std::vector <Enemy>& enemies, MapData& map, float elapsedTime);
 
@@ -112,11 +122,9 @@ private:
 
 	bool getBulletToWallCollision(MapData& map);
 	bool bulletAndEnemyCollision(std::vector <Enemy>& enemies, Player& player);
+	bool bulletAndPlayeCollision(Player& player);
 
 	bool checkProjectionLength(Player& player, Enemy& enemy, float distEpsilon);
-
-	Block& getBlockFloat(MapData& map, float x, float y);
-	Block& getBlockInt(MapData& map, int x, int y);
 
 };
 

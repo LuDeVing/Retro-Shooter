@@ -9,37 +9,16 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 
+#include "Levels.h"
+
 #define PI 3.14159265359
 #define DEG 0.0174533
 
 constexpr int screenWidth = 256;
 constexpr int screenheight = 240;
 
-int roomWidth = 20;
-int roomHeight = 20;
-
-int level[400] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ,1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 1,
-	1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-};
+int roomWidth;
+int roomHeight;
 
 class Example : public olc::PixelGameEngine {
 public:
@@ -67,6 +46,30 @@ public:
 
 		float shootingStateNum = 0.1; // Lower this is higher fire rate is
 		float coolingStateNum = 0.4;
+
+	};
+
+	struct SpriteDist {
+
+		int type;
+		int idx;
+		float distSquared;
+
+		SpriteDist() {
+			this->type = 0;
+			this->idx = 0;
+			this->distSquared = 1000000000;
+		}
+
+		SpriteDist(int type, int idx, float distX, float distY) {
+			this->type = type;
+			this->idx = idx;
+			this->distSquared = distX * distX + distY * distY;
+		}
+
+		bool operator<(const SpriteDist& o){
+			return (distSquared < o.distSquared);
+		}
 
 	};
 
@@ -286,6 +289,8 @@ public:
 
 	void shootGun() {
 
+		PlaySound(TEXT("Resources/Sounds/PlayerShoot.wav"), NULL, SND_ASYNC);
+
 		player.gunState = SHOOTING;
 
 		shotLastFrame = true;
@@ -326,6 +331,27 @@ public:
 			}
 		}
 
+	}
+
+	void drawHealthBar() {
+
+		int barWidth = 100;
+		int barHeight = 10;
+			
+		int barStart = 5;
+
+		for (int y = barStart; y <= barStart + barHeight; y++) {
+			for (int x = ScreenWidth() / 2 - barWidth / 2; x <= ScreenWidth() / 2 + barWidth / 2; x++) {
+
+				int pointOfHealthX = x - (ScreenWidth() / 2 - barWidth / 2);
+
+				if (pointOfHealthX <= barWidth * player.health / player.maxHealth)
+					Draw(x, y, olc::RED);
+				else Draw(x, y, olc::GREY);
+
+			}
+		}
+			
 	}
 
 	/*************************************** IMPORTANT FUNCTIONS ***************************************/
@@ -415,6 +441,7 @@ public:
 			Block& curBlock = room.getBlockSizeAdjusted(forPos.x, forPos.y, cubeSize);
 
 			if (curBlock.type == DOOR) {
+				PlaySound(TEXT("Resources/Sounds/DoorSound.wav"), NULL, SND_ASYNC);
 				curBlock.isOpen = true;
 			}
 
@@ -649,7 +676,7 @@ public:
 				if (xPlace < 0 || xPlace >= ScreenWidth() || rt2 > depthBuffer[xPlace])
 					continue;
 
-				depthBuffer[xPlace] = rt2;
+				// depthBuffer[xPlace] = rt2;
 
 				tx = (float)x * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
 				ty = (float)y * (float)room.getSpriteTexture(curSprite.textureID, curSprite.textureSectionID).imageWidth / widthScaled;
@@ -689,6 +716,8 @@ public:
 
 		}
 
+		drawHealthBar();
+
 	}
 
 	void roomLogic() {
@@ -707,13 +736,16 @@ public:
 
 	}
 
+	void GAMEOVER() {
+		exit(0);
+	}
+
 public:
 
 	bool OnUserCreate() override {
 
-		// player
-
-		player.position = olc::vf2d(256, 256 * 2);
+		roomWidth = level1::roomWidth;
+		roomHeight = level1::roomHeight;
 
 		// room
 
@@ -729,21 +761,16 @@ public:
 
 		skyTexture = Texture("Resources/sky.bmp");
 
-		// enemy
-
-		enemies.push_back(Enemy(256 * 2, 256 * 2, 30, cubeSize * 2, cubeSize * 2));
-		enemies[enemies.size() - 1].textureID = 0;
-
-		room.addSpriteTexture("Resources/spainPenguin.png", enemies[enemies.size() - 1].textureSectionID);
-
+		room.addSpriteTexture("Resources/spainPenguin.png", 1);
 		room.addSpriteTexture("Resources/EnergyBall.png", 2);
+		room.addSpriteTexture("Resources/FireBall.png", 2);
 
-		// fill room
+		// fill room		
 
 		for(int y = 0; y < roomHeight; y++) {
 			for (int x = 0; x < roomWidth; x++) {
 
-				if (level[y * roomWidth + x] == 1) {
+				if (level1::level[y * roomWidth + x] == 1) {
 
 					room.changeBlock(x, y, blockTypes::WALL);
 					room.changeWallTexture(x, y, 0);
@@ -751,7 +778,7 @@ public:
 					room.changeCeilTexture(x, y, 0);
 
 				}
-				else if (level[y * roomWidth + x] == 2) {
+				else if (level1::level[y * roomWidth + x] == 2) {
 
 					room.changeBlock(x, y, blockTypes::DOOR);
 					room.changeWallTexture(x, y, 1);
@@ -762,6 +789,14 @@ public:
 
 				}
 				else  {
+
+					if (level1::level[y * roomWidth + x] == -1) {
+						player.position = olc::vf2d(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2);
+					}
+					else if (level1::level[y * roomWidth + x] == -2) {
+						enemies.push_back(Enemy(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize * 2, cubeSize * 2, room.getWidth(), room.getHeight()));
+						enemies[enemies.size() - 1].textureID = 0;
+					}
 
 					room.changeWallTexture(x, y, 0);
 					room.changeFloorTexture(x, y, 0);
@@ -774,6 +809,8 @@ public:
 
 			}
 		}
+
+		// mapData
 
 		mapData.cubeSize = cubeSize;
 
@@ -815,6 +852,8 @@ public:
 
 		getInputs(fElapsedTime);
 
+		std::vector <SpriteDist> spriteDists;
+
 		roomLogic();
 
 		//Clear(olc::Pixel(135, 206, 235));
@@ -823,8 +862,24 @@ public:
 		renderScene(fov, numberOfRays);
 
 		for (int k = 0; k < enemies.size(); k++) {
-			enemies[k].enemyCicle(player, mapData, fElapsedTime);
-			drawSprite(enemies[k]);
+
+			bool shootBullet = enemies[k].enemyCicle(player, mapData, fElapsedTime);
+			spriteDists.push_back(SpriteDist(1, k, enemies[k].x - player.position.x, enemies[k].y - player.position.y));
+			
+			if (shootBullet) {
+
+				bullets.push_back(Bullet(enemies[k].x, enemies[k].y, 7.0f, 20, 20, 1));
+
+				olc::vf2d ETP = olc::vf2d(player.position.x - enemies[k].x, player.position.y - enemies[k].y);
+				float ETPDist = sqrtf(ETP.x * ETP.x + ETP.y * ETP.y);
+				
+				bullets[bullets.size() - 1].direction = olc::vf2d(ETP.x / ETPDist, ETP.y / ETPDist);
+				bullets[bullets.size() - 1].textureID = 1;
+				bullets[bullets.size() - 1].damage = 10.0f;
+				bullets[bullets.size() - 1].speed = 400.0f;
+
+			}
+
 		}
 
 		for (int k = 0; k < bullets.size(); k++) {
@@ -837,8 +892,11 @@ public:
 				k--;
 
 			}
-			else drawSprite(bullets[k]);
-		
+			else {
+				spriteDists.push_back(SpriteDist(2, k, bullets[k].x - player.position.x, bullets[k].y - player.position.y));
+				//	drawSprite(bullets[k]);
+			}
+
 		}
 
 		for (int k = 0; k < enemies.size(); k++) {
@@ -852,7 +910,28 @@ public:
 
 		}
 
+		std::sort(spriteDists.begin(), spriteDists.end());
+		std::reverse(spriteDists.begin(), spriteDists.end());
+
+		for (const auto& i : spriteDists) {
+
+			if (i.type == 0) {
+
+			}
+			else if (i.type == 1) {
+				drawSprite(enemies[i.idx]);
+			}
+			else if (i.type == 2) {
+				drawSprite(bullets[i.idx]);
+			}
+
+		}
+
 		renderGui();
+
+		if (player.health <= 0) {
+			GAMEOVER();
+		}
 
 		return true;
 	}

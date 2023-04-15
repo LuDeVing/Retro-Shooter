@@ -1,5 +1,182 @@
 #include "map.h"
 
+// ************************************* Helper functions and viarables ********************************************** //
+
+#define PI 3.14159265359
+#define DEG 0.0174533
+#define FLOATMAX 3.40282e+038
+
+bool pointInRoom(MapData& map, int x, int y) {
+	return !(x < 0 || x >= map.width || y < 0 || y >= map.height);
+}
+
+Block& getBlockFloat(MapData& map, float x, float y) {
+
+	int xPos = x / map.cubeSize;
+	int yPos = y / map.cubeSize;
+
+	if (xPos < 0 || xPos >= map.width || yPos < 0 || yPos >= map.height) {
+		Block vl;
+		return vl;
+	}
+
+	int blockPos = yPos * map.width + xPos;
+
+	return (*map.map)[blockPos];
+
+}
+
+Block& getBlockInt(MapData& map, int x, int y) {
+
+	if (x < 0 || x >= map.width || y < 0 || y >= map.height) {
+		Block vl;
+		return vl;
+	}
+
+	int blockPos = y * map.width + x;
+
+	return (*map.map)[blockPos];
+
+}
+
+std::pair <float, std::pair<olc::vf2d, bool>> getRayDistance(MapData& map, olc::vf2d rayPos, float rot, bool changeSign = false) {
+
+	bool side;
+
+	float shortestLength = FLOATMAX;
+
+	float interx, intery;
+	float dx, dy;
+
+	bool breakFromLoop = false;
+
+	olc::vf2d retVal(-10000000000, -10000000000);
+
+	if (rot != 2 * PI && rot > PI) {
+		
+		intery = int(rayPos.y) / map.cubeSize * map.cubeSize - 0.0001;
+		interx = rayPos.x - (rayPos.y - intery) / tanf(rot) * (changeSign ? -1 : 1);
+
+		dy = -map.cubeSize;
+		dx = -map.cubeSize / tanf(rot);
+
+		if (changeSign)
+			dx *= -1;
+
+	}
+	else if (rot < PI) {
+
+		intery = int(rayPos.y) / map.cubeSize * map.cubeSize + map.cubeSize;
+		interx = rayPos.x - (rayPos.y - intery) / tanf(rot);
+
+		dy = map.cubeSize;
+		dx = map.cubeSize / tanf(rot);
+
+	}
+
+
+	if (rot == 0 || rot == PI) {
+		breakFromLoop = true;
+	}
+
+	while (!breakFromLoop) {
+
+		int pointx = interx / map.cubeSize;
+		int pointy = intery / map.cubeSize;
+
+		if (!pointInRoom(map, pointx, pointy))
+			break;
+
+		if (getBlockInt(map, pointx, pointy).type != blockTypes::NONE) {
+
+			float delX2 = (interx - rayPos.x) * (interx - rayPos.x);
+			float delY2 = (intery - rayPos.y) * (intery - rayPos.y);
+
+			float newLenght = sqrtf(delX2 + delY2);
+
+			if (newLenght < shortestLength) {
+
+				shortestLength = newLenght;
+				retVal = olc::vf2d(interx, intery);
+				side = 0;
+
+			}
+
+			break;
+
+		}
+
+		interx += dx;
+		intery += dy;
+	}
+
+	interx = 0, intery = 0;
+	dx = 0, dy = 0;
+
+	breakFromLoop = false;
+
+	if (rot > PI / 2 && rot < 3 * PI / 2) {
+
+		interx = int(rayPos.x) / map.cubeSize * map.cubeSize - 0.0001;
+		intery = rayPos.y - (rayPos.x - interx) * tanf(rot);
+
+		dx = -map.cubeSize;
+		dy = -map.cubeSize * tanf(rot);
+
+	}
+	else if (rot < PI / 2 || rot > 3 * PI / 2) {
+
+		interx = int(rayPos.x) / map.cubeSize * map.cubeSize + map.cubeSize;
+		intery = rayPos.y - (rayPos.x - interx) * tanf(rot);
+
+		dx = map.cubeSize;
+		dy = map.cubeSize * tanf(rot);
+
+		if (changeSign)
+			dx *= -1;
+
+	}
+
+	if (rot == PI / 2 || rot == rot > 3 * PI / 2) {
+		breakFromLoop = true;
+	}
+	
+	while (!breakFromLoop) {
+
+		int pointx = (int)interx / map.cubeSize;
+		int pointy = (int)intery / map.cubeSize;
+
+		if (!pointInRoom(map, pointx, pointy))
+			break;
+
+		if (getBlockInt(map, pointx, pointy).type != blockTypes::NONE) {
+
+			float delX2 = (interx - rayPos.x) * (interx - rayPos.x);
+			float delY2 = (intery - rayPos.y) * (intery - rayPos.y);
+
+			float newLenght = sqrtf(delX2 + delY2);
+
+			if (newLenght < shortestLength) {
+
+				shortestLength = newLenght;
+				retVal = olc::vf2d(interx, intery);
+				side = 1;
+
+			}
+
+			break;
+
+		}
+
+		interx += dx;
+		intery += dy;
+
+	}
+
+	return { shortestLength, {retVal,  side} };
+
+}
+
 Room::Room(int mapWidth, int mapHeight) {
 
 	this->width = mapWidth;
@@ -8,6 +185,18 @@ Room::Room(int mapWidth, int mapHeight) {
 	this->map.resize(width * height, Block());
 
 };
+
+float fixAngle(float Angle) {
+
+	if (Angle < 0)
+		Angle += 2 * PI;
+
+	if (Angle > 2 * PI)
+		Angle -= 2 * PI;
+
+	return Angle;
+
+}
 
 void Room::changeBlock(int x, int y, blockTypes type) {
 
@@ -140,11 +329,15 @@ Sprite::Sprite(float x, float y, float z, float width, float height) {
 
 }
 
-Enemy::Enemy() {
+Enemy::Enemy(int mapWidth, int mapHeight) {
+
 	this->textureSectionID = 1;
+
+	used = std::vector <std::vector <bool> >(mapHeight, std::vector <bool>(mapWidth));
+
 }
 
-Enemy::Enemy(float x, float y, float z, float width, float height) {
+Enemy::Enemy(float x, float y, float z, float width, float height, int mapWidth, int mapHeight) {
 
 	this->textureSectionID = 1;
 
@@ -154,6 +347,8 @@ Enemy::Enemy(float x, float y, float z, float width, float height) {
 
 	this->width = width;
 	this->height = height;
+
+	used = std::vector <std::vector <bool> >(mapHeight, std::vector <bool>(mapWidth));
 
 }
 
@@ -161,7 +356,7 @@ Bullet::Bullet() {
 	this->textureSectionID = 2;
 }
 
-Bullet::Bullet(float x, float y, float z, float width, float height) {
+Bullet::Bullet(float x, float y, float z, float width, float height, int bulletTagID) {
 
 	this->textureSectionID = 2;
 
@@ -172,36 +367,7 @@ Bullet::Bullet(float x, float y, float z, float width, float height) {
 	this->width = width;
 	this->height = height;
 
-}
-
-// ************************************* Enemy functions ********************************************** //
-
-Block& Enemy::getBlockFloat(MapData& map, float x, float y) {
-
-	int xPos = x / map.cubeSize;
-	int yPos = y / map.cubeSize;
-
-	if (xPos < 0 || xPos >= map.width || yPos < 0 || yPos >= map.height) {
-		Block vl;
-		return vl;
-	}
-
-	int blockPos = yPos * map.width + xPos;
-
-	return (*map.map)[blockPos];
-
-}
-
-Block& Enemy::getBlockInt(MapData& map, int x, int y) {
-
-	if (x < 0 || x >= map.width || y < 0 || y >= map.height) {
-		Block vl;
-		return vl;
-	}
-
-	int blockPos = y * map.width + x;
-
-	return (*map.map)[blockPos];
+	this->bulletTagID = bulletTagID;
 
 }
 
@@ -292,8 +458,6 @@ olc::vf2d Enemy::findShortestPath(MapData& map, olc::vf2d startIdxF, olc::vf2d e
 	std::pair <int, int> startIdx = { startIdxF.x / map.cubeSize, startIdxF.y / map.cubeSize };
 	std::pair <int, int> endIdx = { endIdxF.x / map.cubeSize, endIdxF.y / map.cubeSize };
 
-	std::vector <std::vector <bool> > used(vsh, std::vector <bool> (vsw));
-
 	std::vector < std::vector <std::pair <int, int> > > last =
 		std::vector < std::vector < std::pair <int, int> > >(vsh, std::vector < std::pair <int, int> >(vsw));
 
@@ -342,6 +506,7 @@ olc::vf2d Enemy::findShortestPath(MapData& map, olc::vf2d startIdxF, olc::vf2d e
 
 		if (endIdx == std::pair<int, int>({ -1, -1 })) {
 			olc::vi2d retVal = olc::vi2d(startIdxF.x / map.cubeSize, startIdxF.y / map.cubeSize);
+			isActive = false;
 			break;
 		}
 		
@@ -393,58 +558,61 @@ void Enemy::fixEnemyToWallCollision(MapData& map, float moveX, float moveY) {
 
 }
 
-void Enemy::enemyCicle(Player& player, MapData& map, float elapsedTime) {
+bool Enemy::enemyCicle(Player& player, MapData& map, float elapsedTime) {
+
+	olc::vf2d ETP = olc::vf2d(player.position.x - x, player.position.y - y);
+	float ETPDist = sqrtf(ETP.x * ETP.x + ETP.y * ETP.y);
+
+	float angleOfRay = fixAngle(asinf(ETP.y / ETPDist));
+
+	bool changeSign = (ETP.x < 0);
+
+	float distToWall = getRayDistance(map, olc::vf2d(x, y), angleOfRay, changeSign).first;
+
+	if (ETPDist < distToWall && distToWall < FLOATMAX / 10) {
+		isActive = true;
+	}
+	
+	if (!isActive) return false;
 
 	int dirX = 0;
 	int dirY = 0;
 
 	olc::vf2d nextPos = Enemy::findShortestPath(map, olc::vf2d(x, y), player.position);
 
-	if (x < nextPos.x) dirX = 1;
-	if (x > nextPos.x) dirX = -1;
+	if (ETPDist * ETPDist > (map.cubeSize / 2 * map.cubeSize / 2)) {
 
-	if (y < nextPos.y) dirY = 1;
-	if (y > nextPos.y) dirY = -1;
+		if (x < nextPos.x) dirX = 1;
+		if (x > nextPos.x) dirX = -1;
 
-	x += dirX * speed * elapsedTime;
-	y += dirY * speed * elapsedTime;
+		if (y < nextPos.y) dirY = 1;
+		if (y > nextPos.y) dirY = -1;
 
-	fixEnemyToWallCollision(map, dirX * speed * elapsedTime, dirY * speed * elapsedTime);
+		x += dirX * speed * elapsedTime;
+		y += dirY * speed * elapsedTime;
+
+		fixEnemyToWallCollision(map, dirX * speed * elapsedTime, dirY * speed * elapsedTime);
+
+	}
+
+	bool shootBullet = false;
+
+	curFireRateNum -= elapsedTime;
+
+	if (curFireRateNum < 0 && ETPDist < distToWall && distToWall < FLOATMAX / 10) {
+		curFireRateNum = fireRate;
+		shootBullet = true;
+	}
+
+	if (shootBullet) {
+		PlaySound(TEXT("Resources/Sounds/EnemyShoot.wav"), NULL, SND_ASYNC);
+	}
+	
+	return shootBullet;
 
 }
 
 // ************************************* Bullet functions ********************************************** //
-
-Block& Bullet::getBlockFloat(MapData& map, float x, float y) {
-
-	int xPos = x / map.cubeSize;
-	int yPos = y / map.cubeSize;
-
-	if (xPos < 0 || xPos >= map.width || yPos < 0 || yPos >= map.height) {
-		Block vl;
-		return vl;
-	}
-
-	int blockPos = yPos * map.width + xPos;
-
-	return (*map.map)[blockPos];
-
-}
-
-Block& Bullet::getBlockInt(MapData& map, int x, int y) {
-
-	if (x < 0 || x >= map.width || y < 0 || y >= map.height) {
-		Block vl;
-		return vl;
-	}
-
-	int blockPos = y * map.width + x;
-
-	return (*map.map)[blockPos];
-
-
-}
-
 
 
 bool Bullet::getBulletToWallCollision(MapData& map) {
@@ -498,6 +666,9 @@ bool Bullet::bulletAndEnemyCollision(std::vector <Enemy>& enemies, Player& playe
 
 	for (int k = 0; k < enemies.size(); k++) {
 
+		if (bulletTagID != enemies[k].bulletTagID)
+			continue;
+
 		float enemyRadiuseSqruared = enemies[k].entityRadius * enemies[k].entityRadius;
 		float differenceSquared = (enemies[k].x - x) * (enemies[k].x - x) + (enemies[k].y - y) * (enemies[k].y - y);
 
@@ -506,6 +677,36 @@ bool Bullet::bulletAndEnemyCollision(std::vector <Enemy>& enemies, Player& playe
 			retVal = true;
 		}
 
+	}
+
+	if (retVal) {
+		PlaySound(TEXT("Resources/Sounds/EnemyrHit.wav"), NULL, SND_ASYNC);
+	}
+
+	return retVal;
+
+}
+
+bool Bullet::bulletAndPlayeCollision(Player& player) {
+
+	bool retVal = false;
+
+	if (bulletTagID != player.bulletTagID)
+		return false;
+
+	float bulletRadiusSquared = entityRadius * entityRadius;
+
+	float enemyRadiuseSqruared = player.entityRadius * player.entityRadius;
+	float differenceSquared = (player.position.x - x) * (player.position.x - x) + (player.position.y - y) * (player.position.y - y);
+
+
+	if (bulletRadiusSquared + enemyRadiuseSqruared >= differenceSquared) {
+		player.health -= damage;
+		retVal = true;
+	}
+
+	if (retVal) {
+		PlaySound(TEXT("Resources/Sounds/PlayerHit.wav"), NULL, SND_ASYNC);
 	}
 
 	return retVal;
@@ -521,6 +722,7 @@ bool Bullet::bulletCicle(Player& player, std::vector <Enemy>& enemies, MapData& 
 
 	getDestroyed |= getBulletToWallCollision(map);
 	getDestroyed |= bulletAndEnemyCollision(enemies, player);
+	getDestroyed |= bulletAndPlayeCollision(player);
 
 	return getDestroyed;
 
@@ -539,6 +741,7 @@ void Block::doorCicle(const olc::vf2d& playerPos, int cubeSize, olc::vi2d thisPo
 			closeTime = 0.3f;
 
 		if (closeTime <= 0) {
+			PlaySound(TEXT("Resources/Sounds/DoorSound.wav"), NULL, SND_ASYNC);
 			closeTime = OGCloseTime;
 			type = DOOR;
 			isOpen = false;
