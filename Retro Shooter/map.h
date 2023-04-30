@@ -8,7 +8,8 @@
 #include "misc.h"
 #include "Player.h"
 
-static enum blockTypes { NONE,  WALL, DOOR };
+static enum blockTypes { NONE,  WALL, DOOR, ENDDOOR };
+static enum powerUpTypes { NOPWR, HEALTH1, HEALTH2, HEALTH3 };
 
 struct Block {
 
@@ -23,6 +24,8 @@ struct Block {
 	float OGCloseTime = 1.5f;
 	float closeTime = OGCloseTime;
 	
+	bool isEndDoor = false;
+
 	bool isDoor = false;
 	bool isOpen = false;
 
@@ -49,6 +52,9 @@ struct Sprite {
 	float width = 0, height = 0;
 
 	int textureSectionID, textureID;
+	
+	powerUpTypes powerUpType = powerUpTypes::NOPWR;
+
 	
 	// textureSectionID:
 	// 0 -> static
@@ -78,6 +84,16 @@ public:
 	bool isActive = false;
 	int bulletTagID = 0;
 
+	int staticTextureID = 0;
+	int shootTextureID = 1;
+	int deadTextureID = 0;
+
+	float shootingTextureStay = 2.5f;
+	float ogShootingTextureStay = 0.1f;
+
+	float checkPlayerOg = 0.05f;
+	float checkPlayer = 0.05f;
+
 	Enemy(int mapWidth, int mapHeight);
 	Enemy(float x, float y, float z, float width, float height, int mapWidth, int mapHeight);
 
@@ -101,9 +117,14 @@ private:
 
 struct Bullet : public Sprite {
 
+public:
+
 	float damage = 20.0f;
 
 	olc::vf2d direction;
+
+	float zDirection = 0.0f;
+
 	float speed = 1000.0f;
 	float radius = 0.5f;
 

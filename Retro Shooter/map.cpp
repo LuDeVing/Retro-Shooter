@@ -54,7 +54,7 @@ std::pair <float, std::pair<olc::vf2d, bool>> getRayDistance(MapData& map, olc::
 
 	if (rot != 2 * PI && rot > PI) {
 		
-		intery = int(rayPos.y) / map.cubeSize * map.cubeSize - 0.0001;
+		intery = int(rayPos.y) / map.cubeSize * map.cubeSize - 0.001;
 		interx = rayPos.x - (rayPos.y - intery) / tanf(rot) * (changeSign ? -1 : 1);
 
 		dy = -map.cubeSize;
@@ -79,12 +79,14 @@ std::pair <float, std::pair<olc::vf2d, bool>> getRayDistance(MapData& map, olc::
 		breakFromLoop = true;
 	}
 
+	int maxIterations = 100;
+
 	while (!breakFromLoop) {
 
 		int pointx = interx / map.cubeSize;
 		int pointy = intery / map.cubeSize;
 
-		if (!pointInRoom(map, pointx, pointy))
+		if (!pointInRoom(map, pointx, pointy) || --maxIterations <= 0)
 			break;
 
 		if (getBlockInt(map, pointx, pointy).type != blockTypes::NONE) {
@@ -117,7 +119,7 @@ std::pair <float, std::pair<olc::vf2d, bool>> getRayDistance(MapData& map, olc::
 
 	if (rot > PI / 2 && rot < 3 * PI / 2) {
 
-		interx = int(rayPos.x) / map.cubeSize * map.cubeSize - 0.0001;
+		interx = int(rayPos.x) / map.cubeSize * map.cubeSize - 0.001;
 		intery = rayPos.y - (rayPos.x - interx) * tanf(rot);
 
 		dx = -map.cubeSize;
@@ -141,12 +143,14 @@ std::pair <float, std::pair<olc::vf2d, bool>> getRayDistance(MapData& map, olc::
 		breakFromLoop = true;
 	}
 	
+	maxIterations = 100;
+
 	while (!breakFromLoop) {
 
 		int pointx = (int)interx / map.cubeSize;
 		int pointy = (int)intery / map.cubeSize;
 
-		if (!pointInRoom(map, pointx, pointy))
+		if (!pointInRoom(map, pointx, pointy) || --maxIterations <= 0)
 			break;
 
 		if (getBlockInt(map, pointx, pointy).type != blockTypes::NONE) {
@@ -368,6 +372,7 @@ Bullet::Bullet(float x, float y, float z, float width, float height, int bulletT
 	this->height = height;
 
 	this->bulletTagID = bulletTagID;
+	this->zDirection = zDirection;
 
 }
 
@@ -502,10 +507,12 @@ olc::vf2d Enemy::findShortestPath(MapData& map, olc::vf2d startIdxF, olc::vf2d e
 
 	olc::vi2d retValInt = olc::vi2d();
 
+	int maxDistance = 100;
+
 	while (endIdx != startIdx) {
 
-		if (endIdx == std::pair<int, int>({ -1, -1 })) {
-			olc::vi2d retVal = olc::vi2d(startIdxF.x / map.cubeSize, startIdxF.y / map.cubeSize);
+		if (endIdx == std::pair<int, int>({ -1, -1 }) || --maxDistance <= 0) {
+			retValInt = olc::vi2d(startIdxF.x / map.cubeSize, startIdxF.y / map.cubeSize);
 			isActive = false;
 			break;
 		}
@@ -560,8 +567,20 @@ void Enemy::fixEnemyToWallCollision(MapData& map, float moveX, float moveY) {
 
 bool Enemy::enemyCicle(Player& player, MapData& map, float elapsedTime) {
 
+	if (!isActive) {
+
+		checkPlayer -= elapsedTime;
+		
+		if (checkPlayer <= 0) {
+			checkPlayer = checkPlayerOg;
+		}
+		else return false;
+
+	}
+
 	olc::vf2d ETP = olc::vf2d(player.position.x - x, player.position.y - y);
 	float ETPDist = sqrtf(ETP.x * ETP.x + ETP.y * ETP.y);
+
 
 	float angleOfRay = fixAngle(asinf(ETP.y / ETPDist));
 
@@ -606,6 +625,14 @@ bool Enemy::enemyCicle(Player& player, MapData& map, float elapsedTime) {
 
 	if (shootBullet) {
 		PlaySound(TEXT("Resources/Sounds/EnemyShoot.wav"), NULL, SND_ASYNC);
+		textureID = shootTextureID; 
+		shootingTextureStay = ogShootingTextureStay;
+	}
+	else if(shootingTextureStay >= 0) {
+		shootingTextureStay -= elapsedTime;
+	}
+	else {
+		textureID = staticTextureID;
 	}
 	
 	return shootBullet;
@@ -680,7 +707,7 @@ bool Bullet::bulletAndEnemyCollision(std::vector <Enemy>& enemies, Player& playe
 	}
 
 	if (retVal) {
-		PlaySound(TEXT("Resources/Sounds/EnemyrHit.wav"), NULL, SND_ASYNC);
+		PlaySound(TEXT("Resources/Sounds/EnemyHit.wav"), NULL, SND_ASYNC);
 	}
 
 	return retVal;
@@ -717,6 +744,7 @@ bool Bullet::bulletCicle(Player& player, std::vector <Enemy>& enemies, MapData& 
 
 	x += direction.x * speed * elapsedTime;
 	y += direction.y * speed * elapsedTime;
+	z += zDirection * speed * elapsedTime;
 
 	bool getDestroyed = false;
 

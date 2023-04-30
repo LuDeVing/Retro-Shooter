@@ -18,7 +18,7 @@ public:
 	float speed = 300.0f;
 	float radius = 2;
 
-	float entityRadius = 7.0f;
+	float entityRadius = 10.0f;
 
 	int bulletTagID = 1;
 
