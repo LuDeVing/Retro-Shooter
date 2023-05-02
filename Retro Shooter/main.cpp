@@ -1,5 +1,6 @@
 #include <iostream>
 #include <utility>
+#include <fstream>
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -45,7 +46,7 @@ public:
 	bool gunUnlocked[3] = { true, true, true };
 
 	int curLevel = 0;
-	int maxLevelReachable = 2;
+	int maxLevelReachable = 4;
 	int maxLevelNum = 4;
 
 	int ScreenPage = 0;
@@ -146,7 +147,7 @@ public:
 	float globalDeltaTime = 1.0f;
 
 	Example() {
-		sAppName = "Example";
+		sAppName = "Legendary Retro Shooter";
 	}
 
 	
@@ -554,6 +555,12 @@ public:
 			if (levelNum == 2) {
 				loadLevel3();
 			}
+			if (levelNum == 3) {
+				loadLevel4();
+			}
+			if (levelNum == 4) {
+				loadLevel5();
+			}
 
 			GUIScreenIsBeingRendered = false;
 
@@ -621,6 +628,59 @@ public:
 	}
 
  	/*************************************** IMPORTANT FUNCTIONS ***************************************/
+
+	void loadData() {
+
+		std::fstream saveFile;
+		saveFile.open("Resources/Save.txt");
+
+		if (saveFile.is_open()) {
+
+			std::streambuf* backup;
+
+			backup = std::cin.rdbuf();
+
+			std::cin.rdbuf(saveFile.rdbuf());
+
+			std::cin >> maxLevelReachable;
+
+			for (int k = 0; k < 3; k++) 
+				std::cin >> gunUnlocked[k];
+
+			std::cin.rdbuf(backup);
+
+		}
+
+		saveFile.close();
+
+	}
+
+	void saveData() {
+
+		std::fstream saveFile;
+		saveFile.open("Resources/Save.txt");
+
+		if (saveFile.is_open()) {
+
+			std::streambuf *backup;
+
+			backup = std::cout.rdbuf();
+
+			std::cout.rdbuf(saveFile.rdbuf());
+
+			std::cout << maxLevelReachable;
+
+			std::cout << '\n';
+
+			for (int k = 0; k < 3; k++)
+				std::cout << gunUnlocked[k] << ' ';
+
+			std::cout.rdbuf(backup);
+
+		}
+
+
+	}
 
 	void getInputs(float fElapsedTime) {
 
@@ -898,16 +958,16 @@ public:
 
 	void drawSky() {
 		
-		float playerRotInDegs = float(player.roation / (2 * PI) * 360.0f) / 3;
+		float playerRotInDegs = float(player.roation / (2 * PI) * 360.0f) / 2;
 
-		for (int y = ScreenHeight() / 2; y >= 0; y--) {
+		for (int y = ScreenHeight(); y >= 0; y--) {
 			for (int x = 0; x < ScreenWidth(); x++) {
 
-				float xRotated = playerRotInDegs * (ScreenWidth() / 128.0f * 2.0f) + (float(x) / 3);
+				float xRotated = playerRotInDegs * (ScreenWidth() / 128.0f * 2.0f) + (float(x) / 2);
 				if (xRotated < 0) { xRotated += 120; } xRotated = (int)xRotated % 120;
 
 				float tx = xRotated * skyTexture.imageWidth / (float)ScreenWidth() * 2.15f;
-				float ty = y * skyTexture.imageHeight / (float)ScreenHeight() * 2.15f / 3;
+				float ty = y * skyTexture.imageHeight / (float)ScreenHeight() * 2.15f / 2;
 
 				Draw(x, y, skyTexture.getPixel((int)tx, (int)ty));
 
@@ -961,6 +1021,11 @@ public:
 
 		float heightScaled = curSprite.height * ScaleMult;
 		float widthScaled = curSprite.width * ScaleMult;
+
+		if (widthScaled > ScreenWidth() * 10 || heightScaled > ScreenHeight() * 10) {
+			return;
+		}
+
 
 		for (int y = 0; y <= heightScaled; y++) {
 
@@ -1038,6 +1103,14 @@ public:
 					levelPreviews[maxLevelReachable].isActive = true;
 
 					GUIScreenIsBeingRendered = true;
+
+					sprites.clear();
+					enemies.clear();
+					bullets.clear();
+					gunTextures.clear();
+					guns.clear();
+
+					saveData();
 				
 				}
 
@@ -1218,7 +1291,7 @@ public:
 		room.addSpriteTexture("Resources/Level1/enemyDead.png", 0);
 
 		room.addSpriteTexture("Resources/EnergyBall.png", 2);
-		room.addSpriteTexture("Resources/FireBall.png", 2);
+		room.addSpriteTexture("Resources/Level1/enemyBullet.png", 2);
 		room.addSpriteTexture("Resources/shotgunShell.png", 2);
 
 		room.addSpriteTexture("Resources/HealthPickUp.png", 0);
@@ -1267,6 +1340,7 @@ public:
 						enemies[enemies.size() - 1].staticTextureID = 0;
 						enemies[enemies.size() - 1].shootTextureID = 1;
 						enemies[enemies.size() - 1].deadTextureID = 0;
+						enemies[enemies.size() - 1].bulletTextureID = 1;
 					}
 					else if (level1::level[y * roomWidth + x] == -3) {
 						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
@@ -1346,10 +1420,11 @@ public:
 		room.addSpriteTexture("Resources/Level2/enemyDead.png", 0);
 
 		room.addSpriteTexture("Resources/EnergyBall.png", 2);
-		room.addSpriteTexture("Resources/FireBall.png", 2);
+		room.addSpriteTexture("Resources/Level2/enemyBullet.png", 2);
 		room.addSpriteTexture("Resources/shotgunShell.png", 2);
 
 		room.addSpriteTexture("Resources/HealthPickUp.png", 0);
+		room.addSpriteTexture("Resources/gunSprite.png", 0);
 
 		// fill room		
 
@@ -1395,11 +1470,17 @@ public:
 						enemies[enemies.size() - 1].staticTextureID = 0;
 						enemies[enemies.size() - 1].shootTextureID = 1;
 						enemies[enemies.size() - 1].deadTextureID = 0;
+						enemies[enemies.size() - 1].bulletTextureID = 1;
 					}
 					else if (level2::level[y * roomWidth + x] == -3) {
 						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
 						sprites[sprites.size() - 1].textureID = 1;
 						sprites[sprites.size() - 1].powerUpType = powerUpTypes::HEALTH2;
+					}
+					else if (level2::level[y * roomWidth + x] == -5) {
+						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
+						sprites[sprites.size() - 1].textureID = 2;
+						sprites[sprites.size() - 1].powerUpType = powerUpTypes::GUN2;
 					}
 
 					room.changeWallTexture(x, y, 0);
@@ -1474,7 +1555,7 @@ public:
 		room.addSpriteTexture("Resources/Level3/enemyDead.png", 0);
 
 		room.addSpriteTexture("Resources/EnergyBall.png", 2);
-		room.addSpriteTexture("Resources/FireBall.png", 2);
+		room.addSpriteTexture("Resources/Level3/enemyBullet.png", 2);
 		room.addSpriteTexture("Resources/shotgunShell.png", 2);
 
 		room.addSpriteTexture("Resources/HealthPickUp.png", 0);
@@ -1523,12 +1604,350 @@ public:
 						enemies[enemies.size() - 1].staticTextureID = 0;
 						enemies[enemies.size() - 1].shootTextureID = 1;
 						enemies[enemies.size() - 1].deadTextureID = 0;
+						enemies[enemies.size() - 1].bulletTextureID = 1;
 					}
 					else if (level3::level[y * roomWidth + x] == -3) {
 						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
 						sprites[sprites.size() - 1].textureID = 1;
 						sprites[sprites.size() - 1].powerUpType = powerUpTypes::HEALTH2;
 					}
+
+					room.changeWallTexture(x, y, 0);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					if (y > 54) room.getBlock(x, y).hasCeil = false;
+
+				}
+
+			}
+		}
+
+		// mapData
+
+		mapData.cubeSize = cubeSize;
+
+		mapData.width = room.getWidth();
+		mapData.height = room.getHeight();
+
+		mapData.map = &room.getMap();
+
+		// guns
+
+		player.gunID = 0;
+
+		loadGuns();
+
+		// render variables
+
+		fov = 60;
+		numberOfRays = ScreenWidth();
+
+	}
+
+	void loadLevel4() {
+
+		player = Player();
+
+		sprites.clear();
+		enemies.clear();
+		bullets.clear();
+		gunTextures.clear();
+		guns.clear();
+
+		roomWidth = level4::roomWidth;
+		roomHeight = level4::roomHeight;
+
+		floorShade = 0.7f;
+		wallShade = 0.7f;
+		ceilShade = 0.7f;
+
+		curLevel = 3;
+
+		// room
+
+		room = Room(roomWidth, roomHeight);
+
+		// textures
+
+		room.addWallTexture("Resources/Level4/wall.png");
+		room.addFloorTexture("Resources/Level4/floor.png");
+		room.addCeilTexture("Resources/Level4/ceiling.png");
+
+		room.addWallTexture("Resources/Level4/door.jpg");
+
+		room.addWallTexture("Resources/Level4/wallWindow.png");
+
+		skyTexture = Texture("Resources/Level4/sky.bmp");
+
+		room.addSpriteTexture("Resources/Level4/enemy.png", 1);
+		room.addSpriteTexture("Resources/Level4/enemyShoot.png", 1);
+
+		room.addSpriteTexture("Resources/Level4/enemyAlien.png", 1);
+		room.addSpriteTexture("Resources/Level4/enemyAlienShoot.png", 1);
+
+		room.addSpriteTexture("Resources/Level4/enemyDead.png", 0);
+
+		room.addSpriteTexture("Resources/EnergyBall.png", 2);
+		room.addSpriteTexture("Resources/Level4/enemyBullet.png", 2);
+		room.addSpriteTexture("Resources/shotgunShell.png", 2);
+
+		room.addSpriteTexture("Resources/Level4/enemyAlienBullet.png", 2);
+
+		room.addSpriteTexture("Resources/HealthPickUp.png", 0);
+		room.addSpriteTexture("Resources/Level4/enemyAlienDead.png", 0);
+
+		room.addWallTexture("Resources/Level4/planetBorder.png");
+		room.addFloorTexture("Resources/Level4/planetGround.png");
+
+		room.addSpriteTexture("Resources/gunSprite.png", 0);
+
+		// fill room		
+
+		for (int y = 0; y < roomHeight; y++) {
+			for (int x = 0; x < roomWidth; x++) {
+
+				if (level4::level[y * roomWidth + x] == 1) {
+
+					room.changeBlock(x, y, blockTypes::WALL);
+					room.changeWallTexture(x, y, 0);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					if ((x == 0 || x == room.getWidth() - 1) && y % 4 == 0)
+						room.changeWallTexture(x, y, 2);
+
+					if (y > 70) {
+
+						if ((x == 0 || x == room.getWidth() - 1))
+							room.changeWallTexture(x, y, 3);
+		
+						room.changeFloorTexture(x, y, 1);
+					
+					}
+
+
+				}
+				else if (level4::level[y * roomWidth + x] == 2) {
+
+					room.changeBlock(x, y, blockTypes::DOOR);
+					room.changeWallTexture(x, y, 1);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					if (y > 70) {
+						room.changeFloorTexture(x, y, 1);
+					}
+
+					room.getBlock(x, y).isDoor = true;
+
+				}
+				else if (level4::level[y * roomWidth + x] == 3) {
+
+					room.changeBlock(x, y, blockTypes::ENDDOOR);
+					room.changeWallTexture(x, y, 1);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					if (y > 70) {
+						room.changeFloorTexture(x, y, 1);
+					}
+
+					room.getBlock(x, y).isEndDoor = true;
+
+				}
+				else {
+
+					if (level4::level[y * roomWidth + x] == -1) {
+						player.position = olc::vf2d(x * cubeSize + cubeSize / 2 + 0.001f, y * cubeSize + cubeSize / 2 + 0.001f);
+					}
+					else if (level4::level[y * roomWidth + x] == -2) {
+						
+						enemies.push_back(Enemy(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize * 2, cubeSize * 2, room.getWidth(), room.getHeight()));
+						
+						enemies[enemies.size() - 1].textureID = 0;
+						enemies[enemies.size() - 1].staticTextureID = 0;
+						enemies[enemies.size() - 1].shootTextureID = 1;
+						enemies[enemies.size() - 1].deadTextureID = 0;
+
+						enemies[enemies.size() - 1].bulletTextureID = 1;
+
+						if (y > 70) {
+
+							enemies[enemies.size() - 1].textureID = 2;
+							enemies[enemies.size() - 1].staticTextureID = 2;
+							enemies[enemies.size() - 1].shootTextureID = 3;
+							enemies[enemies.size() - 1].deadTextureID = 2;
+
+							enemies[enemies.size() - 1].bulletTextureID = 3;
+
+						}
+
+					}
+					else if (level4::level[y * roomWidth + x] == -3) {
+						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
+						sprites[sprites.size() - 1].textureID = 1;
+						sprites[sprites.size() - 1].powerUpType = powerUpTypes::HEALTH2;
+					}
+					else if (level4::level[y * roomWidth + x] == -5) {
+						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
+						sprites[sprites.size() - 1].textureID = 3;
+						sprites[sprites.size() - 1].powerUpType = powerUpTypes::GUN3;
+					}
+
+					room.changeWallTexture(x, y, 0);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					if (y > 70) room.getBlock(x, y).hasCeil = false;
+
+				}
+
+			}
+		}
+
+		// mapData
+
+		mapData.cubeSize = cubeSize;
+
+		mapData.width = room.getWidth();
+		mapData.height = room.getHeight();
+
+		mapData.map = &room.getMap();
+
+		// guns
+
+		player.gunID = 0;
+
+		loadGuns();
+
+		// render variables
+
+		fov = 60;
+		numberOfRays = ScreenWidth();
+
+	}
+
+	void loadLevel5() {
+
+		player = Player();
+
+		sprites.clear();
+		enemies.clear();
+		bullets.clear();
+		gunTextures.clear();
+		guns.clear();
+
+		roomWidth = level5::roomWidth;
+		roomHeight = level5::roomHeight;
+
+		floorShade = 0.7f;
+		wallShade = 0.7f;
+		ceilShade = 0.7f;
+
+		curLevel = 4;
+
+		// room
+
+		room = Room(roomWidth, roomHeight);
+
+		// textures
+
+		room.addWallTexture("Resources/Level5/wall.png");
+		room.addFloorTexture("Resources/Level5/floor.png");
+		room.addCeilTexture("Resources/Level5/ceiling.png");
+
+		room.addWallTexture("Resources/Level5/door.png");
+
+		skyTexture = Texture("Resources/Level5/sky.bmp");
+
+		room.addSpriteTexture("Resources/Level5/enemy.png", 1);
+		room.addSpriteTexture("Resources/Level5/enemyShoot.png", 1);
+
+		room.addSpriteTexture("Resources/Level5/boss.png", 1);
+		room.addSpriteTexture("Resources/Level5/bossShoot.png", 1);
+
+		room.addSpriteTexture("Resources/Level5/enemyDead.png", 0);
+
+		room.addSpriteTexture("Resources/EnergyBall.png", 2);
+		room.addSpriteTexture("Resources/Level5/enemyBullet.png", 2);
+		room.addSpriteTexture("Resources/shotgunShell.png", 2);
+
+		room.addSpriteTexture("Resources/HealthPickUp.png", 0);
+
+		room.addSpriteTexture("Resources/Level5/bossDead.png", 0);
+
+		// fill room		
+
+		for (int y = 0; y < roomHeight; y++) {
+			for (int x = 0; x < roomWidth; x++) {
+
+				if (level5::level[y * roomWidth + x] == 1) {
+
+					room.changeBlock(x, y, blockTypes::WALL);
+					room.changeWallTexture(x, y, 0);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+				}
+				else if (level5::level[y * roomWidth + x] == 2) {
+
+					room.changeBlock(x, y, blockTypes::DOOR);
+					room.changeWallTexture(x, y, 1);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					room.getBlock(x, y).isDoor = true;
+
+				}
+				else if (level5::level[y * roomWidth + x] == 3) {
+
+					room.changeBlock(x, y, blockTypes::ENDDOOR);
+					room.changeWallTexture(x, y, 1);
+					room.changeFloorTexture(x, y, 0);
+					room.changeCeilTexture(x, y, 0);
+
+					room.getBlock(x, y).isEndDoor = true;
+
+				}
+				else {
+
+					if (level5::level[y * roomWidth + x] == -1) {
+						player.position = olc::vf2d(x * cubeSize + cubeSize / 2 + 0.001f, y * cubeSize + cubeSize / 2 + 0.001f);
+					}
+					else if (level5::level[y * roomWidth + x] == -2) {
+						enemies.push_back(Enemy(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize * 2, cubeSize * 2, room.getWidth(), room.getHeight()));
+						enemies[enemies.size() - 1].textureID = 0;
+						enemies[enemies.size() - 1].staticTextureID = 0;
+						enemies[enemies.size() - 1].shootTextureID = 1;
+						enemies[enemies.size() - 1].deadTextureID = 0;
+						enemies[enemies.size() - 1].bulletTextureID = 1;
+					}
+					else if (level5::level[y * roomWidth + x] == -3) {
+						sprites.push_back(Sprite(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize / 2, cubeSize / 2));
+						sprites[sprites.size() - 1].textureID = 1;
+						sprites[sprites.size() - 1].powerUpType = powerUpTypes::HEALTH2;
+					}
+					else if (level5::level[y * roomWidth + x] == -4) {
+
+						enemies.push_back(Enemy(x * cubeSize + cubeSize / 2, y * cubeSize + cubeSize / 2, 30, cubeSize * 8, cubeSize * 8, room.getWidth(), room.getHeight()));
+
+						enemies[enemies.size() - 1].health = 5000.0f;
+						enemies[enemies.size() - 1].speed = 180.0f;
+
+						enemies[enemies.size() - 1].entityRadius = 100.0f;
+
+						enemies[enemies.size() - 1].fireRate = 0.25f;
+
+						enemies[enemies.size() - 1].textureID = 2;
+						enemies[enemies.size() - 1].staticTextureID = 2;
+						enemies[enemies.size() - 1].shootTextureID = 3;
+						enemies[enemies.size() - 1].deadTextureID = 2;
+						enemies[enemies.size() - 1].bulletTextureID = 1;
+						enemies[enemies.size() - 1].isBoss = true;
+
+					}
+
 
 					room.changeWallTexture(x, y, 0);
 					room.changeFloorTexture(x, y, 0);
@@ -1664,6 +2083,7 @@ public:
 
 		startScreenImage = Texture("Resources/Screen/startScreen.png");
 
+		loadData();
 		loadButtons();
 
 		return true;
@@ -1716,9 +2136,16 @@ public:
 				float ETPDist = sqrtf(ETP.x * ETP.x + ETP.y * ETP.y);
 				
 				bullets[bullets.size() - 1].direction = olc::vf2d(ETP.x / ETPDist, ETP.y / ETPDist);
-				bullets[bullets.size() - 1].textureID = 1;
-				bullets[bullets.size() - 1].damage = 10.0f;
-				bullets[bullets.size() - 1].speed = 400.0f;
+				bullets[bullets.size() - 1].textureID = enemies[k].bulletTextureID;
+				
+				if (enemies[k].isBoss) {
+					bullets[bullets.size() - 1].damage = 15.0f;
+					bullets[bullets.size() - 1].speed = 1000.0f;
+				}
+				else {
+					bullets[bullets.size() - 1].damage = 10.0f;
+					bullets[bullets.size() - 1].speed = 500.0f;
+				}
 
 			}
 
@@ -1764,24 +2191,40 @@ public:
 				float pToSdx = player.position.x - sprites[k].x;
 				float pToSdy = player.position.y - sprites[k].y;
 
-				if (player.entityRadius * player.entityRadius * 4 >= pToSdx * pToSdx + pToSdy * pToSdy && player.health != player.maxHealth) {
+				if (player.entityRadius * player.entityRadius * 4 >= pToSdx * pToSdx + pToSdy * pToSdy) {
 					
-					PlaySound(TEXT("Resources/Sounds/pickup.wav"), NULL, SND_ASYNC);
+					if (player.health != player.maxHealth) {
 
-					if (sprites[k].powerUpType == powerUpTypes::HEALTH1) {
-						player.health += 5;
+						PlaySound(TEXT("Resources/Sounds/pickup.wav"), NULL, SND_ASYNC);
+
+						if (sprites[k].powerUpType == powerUpTypes::HEALTH1) {
+							player.health += 5;
+						}
+
+						if (sprites[k].powerUpType == powerUpTypes::HEALTH2) {
+							player.health += 20;
+						}
+
+						if (sprites[k].powerUpType == powerUpTypes::HEALTH3) {
+							player.health += 30;
+						}
+
+						player.health = std::min(player.maxHealth, player.health);
+
 					}
 
-					if (sprites[k].powerUpType == powerUpTypes::HEALTH2) {
-						player.health += 20;
+					if (sprites[k].powerUpType == powerUpTypes::GUN2) {
+						PlaySound(TEXT("Resources/Sounds/pickup.wav"), NULL, SND_ASYNC);
+						gunUnlocked[1] = true;
+						player.gunID = 1;
 					}
 
-					if (sprites[k].powerUpType == powerUpTypes::HEALTH3) {
-						player.health += 30;
+					if (sprites[k].powerUpType == powerUpTypes::GUN3) {
+						PlaySound(TEXT("Resources/Sounds/pickup.wav"), NULL, SND_ASYNC);
+						gunUnlocked[2] = true;
+						player.gunID = 2;
 					}
 
-					player.health = std::min(player.maxHealth, player.health);
-					
 					sprites.erase(sprites.begin() + k);
 					k--;
 					continue;
@@ -1824,7 +2267,16 @@ public:
 	}
 };
 
+void hideConsole() {
+	HWND Stealth;
+	AllocConsole();
+	Stealth = FindWindowA("ConsoleWindowClass", NULL);
+	ShowWindow(Stealth, 0);
+}
+
 int main() {
+
+	hideConsole();
 
 	Example demo;
 

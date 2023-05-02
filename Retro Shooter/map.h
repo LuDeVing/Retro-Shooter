@@ -9,7 +9,7 @@
 #include "Player.h"
 
 static enum blockTypes { NONE,  WALL, DOOR, ENDDOOR };
-static enum powerUpTypes { NOPWR, HEALTH1, HEALTH2, HEALTH3 };
+static enum powerUpTypes { NOPWR, HEALTH1, HEALTH2, HEALTH3, GUN2, GUN3};
 
 struct Block {
 
@@ -82,7 +82,10 @@ public:
 	float fireRate = 0.5f;
 
 	bool isActive = false;
+	bool isBoss = false;
+	
 	int bulletTagID = 0;
+	int bulletTextureID = 0;
 
 	int staticTextureID = 0;
 	int shootTextureID = 1;
