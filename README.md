@@ -158,7 +158,6 @@ This project relies on the following external components:
 │   └── Save.txt         # File to store persistent game progress
 └── shooter.exe          # The compiled game executable (example name)
 ```
-*(Note: This structure is based on `#include` directives and common C++ project organization. Adjust file names/locations if your actual structure differs.)*
 
 ---
 
