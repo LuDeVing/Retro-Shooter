@@ -26,10 +26,6 @@ Welcome to **Legendary Retro Shooter**! This project is a tribute to the classic
 
 ## 📸 Screenshots & Videos Showcase
 
-**(TODO: Add your visuals here! Visuals are crucial for attracting interest!)**
-
-Show off your game! Replace the placeholders below with your actual media.
-
 * **Gameplay Screenshots:**:
 
     ![image](https://github.com/user-attachments/assets/aaca24e2-4fda-40c2-9dcf-1179adeec254)
