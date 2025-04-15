@@ -28,13 +28,13 @@ Welcome to **Legendary Retro Shooter**! This project is a tribute to the classic
 
 * **Gameplay Screenshots:**:
 
-    ![image](https://github.com/user-attachments/assets/aaca24e2-4fda-40c2-9dcf-1179adeec254)
+    > ![image](https://github.com/user-attachments/assets/aaca24e2-4fda-40c2-9dcf-1179adeec254)
     * *Encounter of a dangerous gnome in the corridors of Level 1!*
 
-    ![image](https://github.com/user-attachments/assets/298f89cc-8a7f-4a5f-8951-e72b1a0a4441)
+    > ![image](https://github.com/user-attachments/assets/298f89cc-8a7f-4a5f-8951-e72b1a0a4441)
     * *Battling alien foes on a strange planet in Level 4.*
 
-    ![image](https://github.com/user-attachments/assets/b7febf6c-b364-472a-832e-1de2c74b22e0)
+    > ![image](https://github.com/user-attachments/assets/46a7682e-9b5f-4d18-bf95-4893838004d3)
     * *Facing off against the final boss!*
    
 * **GUI Screenshots:**.
