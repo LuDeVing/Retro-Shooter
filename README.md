@@ -65,7 +65,7 @@ Welcome to **Legendary Retro Shooter**! This project is a tribute to the classic
 
 You can get game without the code easly with this link
 
-https://www.dropbox.com/scl/fi/l9wuelyvmwxl6aqrk549p/retro-shooter.rar?rlkey=1q3upd8k61ljvv81knkbym1qr&st=kfmeop9k&dl=0
+> *https://www.dropbox.com/scl/fi/u608kdiq8xqpaqsesseyo/Release.rar?rlkey=ng0f579jtoktbg0ks77p8lksp&st=76e8ulsz&dl=0*
 
 Otherwise, getting Legendary Retro Shooter up and running involves compiling the C++ source code.
 
