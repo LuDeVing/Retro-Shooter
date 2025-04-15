@@ -29,33 +29,33 @@ Welcome to **Legendary Retro Shooter**! This project is a tribute to the classic
 * **Gameplay Screenshots:**:
 
     ![image](https://github.com/user-attachments/assets/aaca24e2-4fda-40c2-9dcf-1179adeec254)
-    *Caption: Encounter of a dangerous gnome in the corridors of Level 1!*
+    * Encounter of a dangerous gnome in the corridors of Level 1!*
 
     ![image](https://github.com/user-attachments/assets/298f89cc-8a7f-4a5f-8951-e72b1a0a4441)
-    *Caption: Battling alien foes on a strange planet in Level 4.*
+    * Battling alien foes on a strange planet in Level 4.*
 
     ![image](https://github.com/user-attachments/assets/b7febf6c-b364-472a-832e-1de2c74b22e0)
-    *Caption: Facing off against the final boss!*
+    * Facing off against the final boss!*
    
 * **GUI Screenshots:**.
     
     ![Capture (1)](https://github.com/user-attachments/assets/5f0a3b75-3885-47b9-a86d-825e96a65792)
   
-    *Caption: The main menu screen.*
+    * The main menu screen.*
 
     ![Capture (2)](https://github.com/user-attachments/assets/cb6218e3-af0b-4d78-9ea2-9c37ad519d49)
   
-    *Caption: Choosing the next challenge.*
+    * Choosing the next challenge.*
     
 * **Gameplay Videos/GIFs:** Short clips are perfect for demonstrating the flow of the game.
     
     ![spaceship](https://github.com/user-attachments/assets/d45ea13f-0cb9-42b9-9d7d-fca7523918dd)
   
-    *Caption: Clearing a room in a spaceship.*
+    * Clearing a room in a spaceship.*
 
     [![Watch the video](https://img.youtube.com/vi/ygnje6VUFOA/maxresdefault.jpg)](https://youtu.be/ygnje6VUFOA)
   
-    *Caption: Fighting the zombie horde.*
+    * Fighting the zombie horde.*
   
 
 ## ⚙️ Installation & Setup Guide
